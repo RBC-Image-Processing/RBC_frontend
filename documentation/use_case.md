@@ -2,48 +2,14 @@
 
 ## Use Case Diagram
 
-```plantuml
-@startuml
-skinparam linetype ortho
-left to right direction
-skinparam actorStyle awesome
-actor Administrator as admin
-actor Radiologist as radio
-actor Physician as phy
-actor "Non-Specialist" as non
-rectangle "RBC MIDaP System" {
-  usecase "Upload Medical Images" as UC1
-  usecase "View Medical Images" as UC2
-  usecase "Request AI Interpretation" as UC3
-  usecase "Register Users" as UC4
-  usecase "Assign Roles" as UC5
-  usecase "Provide Human Interpretation" as UC6
-  usecase "View Human Interpretation" as UC7
-  usecase "Provide Comments" as UC8
-}
-admin --> UC1
-admin --> UC2
-admin --> UC4
-admin --> UC5
-radio --> UC1
-radio --> UC2
-radio --> UC6
-phy --> UC1
-phy --> UC2
-phy --> UC3
-phy --> UC7
-phy --> UC8
-non --> UC1
-non --> UC2
-non --> UC3
-@enduml
-```
+![use case diagram](images/usecaseimg.png)
 
 ## Brief Description
 
 The RBC MIDaP (Medical Image Data Processing) system is designed to streamline the process of medical image management, interpretation, and collaboration among healthcare professionals. It incorporates both human expertise and artificial intelligence to improve diagnostic accuracy and efficiency.
 
 Key features include:
+
 - User management with role-based access control
 - Medical image upload and viewing
 - Human interpretation by radiologists
@@ -55,6 +21,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 ## Detailed Flow of Events
 
 ### UC1: Register Users
+
 1. Administrator logs into the system
 2. Administrator selects "Register New User" option
 3. System presents user registration form
@@ -65,6 +32,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 8. System sends account credentials to the new user's email
 
 ### UC2: Assign Roles
+
 1. Administrator logs into the system
 2. Administrator selects "Manage User Roles" option
 3. System displays list of users
@@ -75,6 +43,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 8. System confirms the role change
 
 ### UC3: Upload Medical Images
+
 1. User logs into the system
 2. User selects "Upload Medical Images" option
 3. System presents upload interface
@@ -85,6 +54,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 8. System confirms successful upload to the user
 
 ### UC4: View Medical Images
+
 1. User logs into the system
 2. User selects "View Medical Images" option
 3. System presents search/filter interface
@@ -94,6 +64,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 7. System displays the full image with associated metadata
 
 ### UC5: Provide Human Interpretation
+
 1. Radiologist logs into the system
 2. Radiologist selects an image to interpret
 3. System displays the image and interpretation interface
@@ -104,6 +75,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 8. System stores the interpretation with the image
 
 ### UC6: View Human Interpretation
+
 1. Physician logs into the system
 2. Physician selects an image to view
 3. System displays the image
@@ -113,6 +85,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 7. System logs the physician's access to the interpretation
 
 ### UC7: Request AI Interpretation
+
 1. User (Physician or Non-Specialist) views a medical image
 2. User selects "Request AI Interpretation" option
 3. System confirms the request
@@ -122,6 +95,7 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 7. User views the AI-generated interpretation
 
 ### UC8: Provide Comments and Rate AI Interpretation
+
 1. Physician logs into the system
 2. Physician selects an image to view
 3. System displays the image
