@@ -28,8 +28,10 @@ The system caters to four main user roles: Administrators, Radiologists, Physici
 4. Administrator enters new user's details (name, email, etc.)
 5. Administrator selects the user's role
 6. System validates the entered information
-7. System creates the new user account
-8. System sends account credentials to the new user's email
+7. System creates the new user account in the database
+8. System sends verification link to user's email account
+9. On verification success, prompt the user to enter a new password and confirm password.
+10. On error, display error message.
 
 ### UC2: Assign Roles
 
