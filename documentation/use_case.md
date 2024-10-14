@@ -2,7 +2,7 @@
 
 ## Use Case Diagram
 
-![use case diagram](images/usecaseimg.png)
+![use case diagram](images/UML/usecaseimg.png)
 
 ## Brief Description
 
