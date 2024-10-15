@@ -1,9 +1,12 @@
+type UserRole = 'Administrator' | 'Radiologist' | 'Physician' | 'Non-Specialist';
+
 export interface User {
-    email: string;
-  }
-  
-  export interface AuthContextType {
-    user: User | null;
-    login: (email: string, password: string) => boolean;
-    logout: () => void;
-  }
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => boolean;
+  logout: () => void;
+}
