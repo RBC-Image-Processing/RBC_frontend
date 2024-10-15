@@ -14,6 +14,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ActivateAccount from './pages/ActivateAccount';
+import UserManagement from './pages/UserManagement';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -41,6 +42,14 @@ const App: React.FC = () => {
                   element={
                     <PrivateRoute>
                       <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <PrivateRoute>
+                      <UserManagement />
                     </PrivateRoute>
                   }
                 />
