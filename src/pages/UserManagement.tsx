@@ -44,7 +44,7 @@ const UserManagement: React.FC = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   const isMobile = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm')
+    theme.breakpoints.down('md')
   );
   const isVeryNarrow = useMediaQuery('(max-width:450px)');
 
@@ -275,6 +275,12 @@ const UserManagement: React.FC = () => {
                   variant="contained"
                   onClick={handleRegisterUser}
                   fullWidth={isMobile}
+                  sx={{
+                    fontSize: isMobile ? '0.875rem' : '0.8rem',
+                    borderRadius: 5,
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                  }}
                 >
                   Register
                 </Button>
