@@ -17,6 +17,7 @@ import {
   Share2,
   FileText,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const HeroSection = styled(Box)(({ theme }) => ({
   background: 'url(/images/hero-background.jpg) center/cover no-repeat',
@@ -41,6 +42,13 @@ const HeroSection = styled(Box)(({ theme }) => ({
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleGetStarted = () => {
+    if (user) return navigate('/dashboard');
+
+    navigate('/login');
+  };
 
   const features = [
     {
@@ -100,7 +108,7 @@ const Home: React.FC = () => {
               variant="contained"
               color="secondary"
               size="large"
-              onClick={() => navigate('/login')}
+              onClick={handleGetStarted}
               startIcon={<LoginIcon />}
               sx={{ py: 1.5, px: 4 }}
             >
