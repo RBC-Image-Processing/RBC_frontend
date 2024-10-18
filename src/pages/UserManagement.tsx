@@ -22,11 +22,16 @@ import {
   Card,
   CardContent,
   Grid,
+  IconButton,
+  Switch,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Plus as PlusIcon,
   Users as UsersIcon,
+  Edit as EditIcon,
+  Check as CheckIcon,
+  X as XIcon,
 } from 'lucide-react';
 
 interface User {
@@ -34,6 +39,7 @@ interface User {
   email: string;
   role: 'physician' | 'radiologist' | 'non-specialist';
   verified: boolean;
+  active: boolean;
 }
 
 const UserManagement: React.FC = () => {
@@ -42,6 +48,8 @@ const UserManagement: React.FC = () => {
   const [newUserRole, setNewUserRole] = useState<User['role']>('physician');
   const [searchTerm, setSearchTerm] = useState('');
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingEmail, setEditingEmail] = useState('');
 
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('md')
@@ -54,6 +62,7 @@ const UserManagement: React.FC = () => {
       email: newUserEmail,
       role: newUserRole,
       verified: false,
+      active: true,
     };
     setUsers([...users, newUser]);
     setNewUserEmail('');
@@ -65,6 +74,36 @@ const UserManagement: React.FC = () => {
     setUsers(
       users.map((user) =>
         user.id === userId ? { ...user, role: newRole } : user
+      )
+    );
+  };
+
+  const handleEditEmail = (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      setEditingUserId(userId);
+      setEditingEmail(user.email);
+    }
+  };
+
+  const handleSaveEmail = (userId: string) => {
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, email: editingEmail } : user
+      )
+    );
+    setEditingUserId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditingEmail('');
+  };
+
+  const handleToggleActive = (userId: string) => {
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, active: !user.active } : user
       )
     );
   };
@@ -82,13 +121,45 @@ const UserManagement: React.FC = () => {
             {!isVeryNarrow && (
               <TableCell sx={{ fontWeight: 'bold' }}>Role</TableCell>
             )}
+            <TableCell sx={{ fontWeight: 'bold' }}>Verified</TableCell>
             <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+            <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {filteredUsers.map((user) => (
             <TableRow key={user.id} hover>
-              <TableCell>{user.email}</TableCell>
+              <TableCell>
+                {editingUserId === user.id ? (
+                  <Box display="flex" alignItems="center">
+                    <TextField
+                      value={editingEmail}
+                      onChange={(e) => setEditingEmail(e.target.value)}
+                      size="small"
+                      fullWidth
+                    />
+                    <IconButton
+                      onClick={() => handleSaveEmail(user.id)}
+                      size="small"
+                    >
+                      <CheckIcon size={18} />
+                    </IconButton>
+                    <IconButton onClick={handleCancelEdit} size="small">
+                      <XIcon size={18} />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Box display="flex" alignItems="center">
+                    {user.email}
+                    <IconButton
+                      onClick={() => handleEditEmail(user.id)}
+                      size="small"
+                    >
+                      <EditIcon size={18} />
+                    </IconButton>
+                  </Box>
+                )}
+              </TableCell>
               {!isVeryNarrow && (
                 <TableCell>
                   <Select
@@ -117,6 +188,24 @@ const UserManagement: React.FC = () => {
                   }}
                 />
               </TableCell>
+              <TableCell>
+                <Chip
+                  label={user.active ? 'Active' : 'Inactive'}
+                  color={user.active ? 'success' : 'error'}
+                  size="small"
+                  sx={{
+                    borderRadius: 1,
+                    fontSize: isVeryNarrow ? '0.625rem' : '0.75rem',
+                  }}
+                />
+              </TableCell>
+              <TableCell>
+                <Switch
+                  checked={user.active}
+                  onChange={() => handleToggleActive(user.id)}
+                  size="small"
+                />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -130,14 +219,46 @@ const UserManagement: React.FC = () => {
         <Grid item xs={12} key={user.id}>
           <Card>
             <CardContent>
-              <Typography variant="subtitle1">{user.email}</Typography>
               <Box
-                sx={{
-                  mt: 1,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={1}
+              >
+                {editingUserId === user.id ? (
+                  <Box display="flex" alignItems="center" width="100%">
+                    <TextField
+                      value={editingEmail}
+                      onChange={(e) => setEditingEmail(e.target.value)}
+                      size="small"
+                      fullWidth
+                    />
+                    <IconButton
+                      onClick={() => handleSaveEmail(user.id)}
+                      size="small"
+                    >
+                      <CheckIcon size={18} />
+                    </IconButton>
+                    <IconButton onClick={handleCancelEdit} size="small">
+                      <XIcon size={18} />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <>
+                    <Typography variant="subtitle1">{user.email}</Typography>
+                    <IconButton
+                      onClick={() => handleEditEmail(user.id)}
+                      size="small"
+                    >
+                      <EditIcon size={18} />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
               >
                 <Select
                   value={user.role}
@@ -156,6 +277,17 @@ const UserManagement: React.FC = () => {
                   color={user.verified ? 'success' : 'warning'}
                   size="small"
                   sx={{ borderRadius: 1, fontSize: '0.625rem' }}
+                />
+                <Chip
+                  label={user.active ? 'Active' : 'Inactive'}
+                  color={user.active ? 'success' : 'error'}
+                  size="small"
+                  sx={{ borderRadius: 1, fontSize: '0.625rem' }}
+                />
+                <Switch
+                  checked={user.active}
+                  onChange={() => handleToggleActive(user.id)}
+                  size="small"
                 />
               </Box>
             </CardContent>
@@ -275,12 +407,6 @@ const UserManagement: React.FC = () => {
                   variant="contained"
                   onClick={handleRegisterUser}
                   fullWidth={isMobile}
-                  sx={{
-                    fontSize: isMobile ? '0.875rem' : '0.8rem',
-                    borderRadius: 5,
-                    paddingRight: 8,
-                    paddingLeft: 8,
-                  }}
                 >
                   Register
                 </Button>
