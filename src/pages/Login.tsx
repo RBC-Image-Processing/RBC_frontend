@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Container, Box, Card, CardContent, Avatar, TextField, IconButton, InputAdornment } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import {
+  Typography,
+  Button,
+  Container,
+  Box,
+  Card,
+  CardContent,
+  Avatar,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Link,
+} from '@mui/material';
 import { LogIn as LoginIcon, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,7 +38,9 @@ const Login: React.FC = () => {
       <Card>
         <CardContent sx={{ p: 4 }}>
           <Box display="flex" flexDirection="column" alignItems="center" mb={4}>
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main', width: 56, height: 56 }}>
+            <Avatar
+              sx={{ m: 1, bgcolor: 'secondary.main', width: 56, height: 56 }}
+            >
               <User size={32} />
             </Avatar>
             <Typography component="h1" variant="h5" fontWeight="bold">
@@ -85,6 +99,15 @@ const Login: React.FC = () => {
             >
               Sign In
             </Button>
+            <Box textAlign="center">
+              <Link
+                component={RouterLink}
+                to="/forgot-password"
+                variant="body2"
+              >
+                Forgot password?
+              </Link>
+            </Box>
           </Box>
         </CardContent>
       </Card>
