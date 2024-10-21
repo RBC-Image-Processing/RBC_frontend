@@ -17,6 +17,7 @@ import ActivateAccount from './pages/ActivateAccount';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UserManagement from './pages/UserManagement';
+import DICOMVault from './pages/DICOMVault';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -54,6 +55,14 @@ const App: React.FC = () => {
                   element={
                     <PrivateRoute>
                       <UserManagement />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/dicom-viewer"
+                  element={
+                    <PrivateRoute>
+                      <DICOMVault />
                     </PrivateRoute>
                   }
                 />
