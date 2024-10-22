@@ -9,7 +9,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import dicomjs from 'dicom.ts';
+import dicomts from 'dicom.ts';
 import { Study } from '../types/index';
 
 interface DICOMViewerProps {
@@ -20,7 +20,7 @@ interface DICOMViewerProps {
 export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
   const [currentInstanceIndex, setCurrentInstanceIndex] = useState<number>(-1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<dicomjs.Renderer | null>(null);
+  const rendererRef = useRef<any>(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -41,7 +41,7 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
           const response = await fetch(instance.imagePath);
           const arrayBuffer = await response.arrayBuffer();
 
-          const image = dicomjs.parseImage(arrayBuffer);
+          const image = dicomts.parseImage(arrayBuffer);
 
           if (image) {
             // Log some DICOM tags
@@ -54,7 +54,7 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
 
             // Create or reuse the renderer
             if (!rendererRef.current) {
-              rendererRef.current = new dicomjs.Renderer(canvas);
+              rendererRef.current = new dicomts.Renderer(canvas);
             }
 
             // Render the image
