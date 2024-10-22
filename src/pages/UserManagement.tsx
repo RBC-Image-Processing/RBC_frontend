@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -64,6 +64,7 @@ const UserManagement: React.FC = () => {
       verified: false,
       active: true,
     };
+
     setUsers([...users, newUser]);
     setNewUserEmail('');
     setNewUserRole('physician');
