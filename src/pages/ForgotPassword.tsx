@@ -12,6 +12,9 @@ import {
 import { Send as SendIcon } from 'lucide-react';
 
 const ForgotPassword: React.FC = () => {
+
+
+  
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
