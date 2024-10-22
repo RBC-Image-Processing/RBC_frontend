@@ -46,8 +46,8 @@ const UserManagement: React.FC = () => {
   const [newUserRole, setNewUserRole] = useState<UserList['role']>('PHYSICIAN');
   const [searchTerm, setSearchTerm] = useState('');
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  // const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  // const [editingEmail, setEditingEmail] = useState('');
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingEmail, setEditingEmail] = useState('');
 
     const {loading, users,getUsers, registerUser} = useUser();
 
@@ -57,52 +57,39 @@ const UserManagement: React.FC = () => {
   const isVeryNarrow = useMediaQuery('(max-width:450px)');
 
   const handleRegisterUser = async() =>  {
-
-    await getUsers();
-
-  //  if(await  registerUser(fullName,newUserRole,newUserEmail)){
-  //   setShowRegistrationForm(false);
-  //  }
+    
+    if(await  registerUser(fullName,newUserRole,newUserEmail)){
+      setShowRegistrationForm(false);
+      await getUsers();
+   }
   
   };
 
-  // const handleRoleChange = (userId: string, newRole: User['role']) => {
-  //   setUsers(
-  //     users.map((user) =>
-  //       user.id === userId ? { ...user, role: newRole } : user
-  //     )
-  //   );
-  // };
+  const handleRoleChange = (userId: string, newRole: UserList['role']) => {
+   console.log("Role changed")
+  };
 
-  // const handleEditEmail = (userId: string) => {
-  //   const user = users&&users.find((u) => u.id === userId);
-  //   if (user) {
-  //     setEditingUserId(userId);
-  //     setEditingEmail(user.email);
-  //   }
-  // };
+  const handleEditEmail = (userId: string) => {
+    const user = users&&users.find((u) => u.userId === userId);
+    if (user) {
+      setEditingUserId(userId);
+      setEditingEmail(user.email);
+    }
+  };
 
-  // const handleSaveEmail = (userId: string) => {
-  //   setUsers(
-  //     users.map((user) =>
-  //       user.id === userId ? { ...user, email: editingEmail } : user
-  //     )
-  //   );
-  //   setEditingUserId(null);
-  // };
+  const handleSaveEmail = (userId: string) => {
+ //TODO tHE EMAIL CHANGING LOGIC
+    setEditingUserId(null);
+  };
 
-  // const handleCancelEdit = () => {
-  //   setEditingUserId(null);
-  //   setEditingEmail('');
-  // };
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditingEmail('');
+  };
 
-  // const handleToggleActive = (userId: string) => {
-  //   setUsers(
-  //     users&&users.map((user) =>
-  //       user.userId === userId ? { ...user, active: !user.isActive } : user
-  //     )
-  //   );
-  // };
+  const handleToggleActive = (userId: string) => {
+   //TODO deactivate and activate a user logic
+  };
 
   const filteredUsers = users && users.filter((user) =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -123,7 +110,7 @@ const UserManagement: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* {filteredUsers&&filteredUsers.map((user) => (
+          {filteredUsers&&filteredUsers.map((user) => (
             <TableRow key={user.userId} hover>
               <TableCell>
                 {editingUserId === user.userId ? (
@@ -161,7 +148,7 @@ const UserManagement: React.FC = () => {
                   <Select
                     value={user.role}
                     onChange={(e) =>
-                      handleRoleChange(user.id, e.target.value as User['role'])
+                      handleRoleChange(user.userId, e.target.value as UserList['role'])
                     }
                     size="small"
                     variant="standard"
@@ -203,7 +190,7 @@ const UserManagement: React.FC = () => {
                 />
               </TableCell>
             </TableRow>
-          ))} */}
+          ))}
         </TableBody>
       </Table>
     </TableContainer>
@@ -213,7 +200,7 @@ const UserManagement: React.FC = () => {
     <Grid container spacing={2}>
       {filteredUsers&&filteredUsers.map((user) => (
         <Grid item xs={12} key={user.userId}>
-          {/* <Card>
+          <Card>
             <CardContent>
               <Box
                 display="flex"
@@ -243,7 +230,7 @@ const UserManagement: React.FC = () => {
                   <>
                     <Typography variant="subtitle1">{user.email}</Typography>
                     <IconButton
-                      onClick={() => handleEditEmail(user.id)}
+                      onClick={() => handleEditEmail(user.userId)}
                       size="small"
                     >
                       <EditIcon size={18} />
@@ -259,7 +246,7 @@ const UserManagement: React.FC = () => {
                 <Select
                   value={user.role}
                   onChange={(e) =>
-                    handleRoleChange(user.id, e.target.value as User['role'])
+                    handleRoleChange(user.userId, e.target.value as UserList['role'])
                   }
                   size="small"
                   variant="standard"
@@ -287,7 +274,7 @@ const UserManagement: React.FC = () => {
                 />
               </Box>
             </CardContent>
-          </Card> */}
+          </Card>
         </Grid>
       ))}
     </Grid>
@@ -355,8 +342,7 @@ const UserManagement: React.FC = () => {
 
           fullWidth={isVeryNarrow}
              variant="contained"
-                 onClick={handleRegisterUser}
-           // onClick={() => setShowRegistrationForm(!showRegistrationForm)}
+           onClick={() => setShowRegistrationForm(!showRegistrationForm)}
           startIcon={ <PlusIcon />}
                 >
        Add user

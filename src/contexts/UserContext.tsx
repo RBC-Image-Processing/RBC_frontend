@@ -3,6 +3,7 @@ import {  UserContextType , UserErr, UserList} from '../types/index';
 import { AXIOS_GET, AXIOS_POST } from '../api/axios';
 import toast from "react-hot-toast";
 import { GET_USERS, REGISTER_USER , } from '../helper/Urls';
+import { Verified } from 'lucide-react';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -29,7 +30,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       const res = await AXIOS_POST(REGISTER_USER, {
         fullName,
         email,
-        roleId
+        roleId,
+        isActive: false,
+        Verified: false,
       });
 
 
