@@ -11,6 +11,7 @@ import theme from './styles/theme';
 import { AuthProvider } from './contexts/AuthContext';
 import NavBar from './components/NavBar';
 import Home from './pages/Home';
+import { Toaster } from "react-hot-toast";
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ActivateAccount from './pages/ActivateAccount';
@@ -20,12 +21,14 @@ import UserManagement from './pages/UserManagement';
 import DICOMVault from './pages/DICOMVault';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import { UserProvider } from './contexts/UserContext';
 
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
+           <UserProvider>
         <Router>
           <Box
             sx={{
@@ -72,7 +75,12 @@ const App: React.FC = () => {
             <Footer />
           </Box>
         </Router>
+          <Toaster
+      position="top-right"
+      reverseOrder={false} />
+       </UserProvider>
       </AuthProvider>
+      
     </ThemeProvider>
   );
 };
