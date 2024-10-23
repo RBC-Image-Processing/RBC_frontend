@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 import {
   Box,
   Typography,
@@ -33,54 +34,43 @@ import {
   Check as CheckIcon,
   X as XIcon,
 } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
+import {UserList} from "../types/index"
 
-interface User {
-  id: string;
-  email: string;
-  role: 'physician' | 'radiologist' | 'non-specialist';
-  verified: boolean;
-  active: boolean;
-}
+
+
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [fullName, setfullName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserRole, setNewUserRole] = useState<User['role']>('physician');
+  const [newUserRole, setNewUserRole] = useState<UserList['role']>('PHYSICIAN');
   const [searchTerm, setSearchTerm] = useState('');
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
+
+    const {loading, users,getUsers, registerUser} = useUser();
 
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('md')
   );
   const isVeryNarrow = useMediaQuery('(max-width:450px)');
 
-  const handleRegisterUser = () => {
-    const newUser: User = {
-      id: (users.length + 1).toString(),
-      email: newUserEmail,
-      role: newUserRole,
-      verified: false,
-      active: true,
-    };
-
-    setUsers([...users, newUser]);
-    setNewUserEmail('');
-    setNewUserRole('physician');
-    setShowRegistrationForm(false);
+  const handleRegisterUser = async() =>  {
+    
+    if(await  registerUser(fullName,newUserRole,newUserEmail)){
+      setShowRegistrationForm(false);
+      await getUsers();
+   }
+  
   };
 
-  const handleRoleChange = (userId: string, newRole: User['role']) => {
-    setUsers(
-      users.map((user) =>
-        user.id === userId ? { ...user, role: newRole } : user
-      )
-    );
+  const handleRoleChange = (userId: string, newRole: UserList['role']) => {
+   console.log("Role changed")
   };
 
   const handleEditEmail = (userId: string) => {
-    const user = users.find((u) => u.id === userId);
+    const user = users&&users.find((u) => u.userId === userId);
     if (user) {
       setEditingUserId(userId);
       setEditingEmail(user.email);
@@ -88,11 +78,7 @@ const UserManagement: React.FC = () => {
   };
 
   const handleSaveEmail = (userId: string) => {
-    setUsers(
-      users.map((user) =>
-        user.id === userId ? { ...user, email: editingEmail } : user
-      )
-    );
+ //TODO tHE EMAIL CHANGING LOGIC
     setEditingUserId(null);
   };
 
@@ -102,14 +88,10 @@ const UserManagement: React.FC = () => {
   };
 
   const handleToggleActive = (userId: string) => {
-    setUsers(
-      users.map((user) =>
-        user.id === userId ? { ...user, active: !user.active } : user
-      )
-    );
+   //TODO deactivate and activate a user logic
   };
 
-  const filteredUsers = users.filter((user) =>
+  const filteredUsers = users && users.filter((user) =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -128,10 +110,10 @@ const UserManagement: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredUsers.map((user) => (
-            <TableRow key={user.id} hover>
+          {filteredUsers&&filteredUsers.map((user) => (
+            <TableRow key={user.userId} hover>
               <TableCell>
-                {editingUserId === user.id ? (
+                {editingUserId === user.userId ? (
                   <Box display="flex" alignItems="center">
                     <TextField
                       value={editingEmail}
@@ -140,7 +122,7 @@ const UserManagement: React.FC = () => {
                       fullWidth
                     />
                     <IconButton
-                      onClick={() => handleSaveEmail(user.id)}
+                      onClick={() => handleSaveEmail(user.userId)}
                       size="small"
                     >
                       <CheckIcon size={18} />
@@ -153,7 +135,7 @@ const UserManagement: React.FC = () => {
                   <Box display="flex" alignItems="center">
                     {user.email}
                     <IconButton
-                      onClick={() => handleEditEmail(user.id)}
+                      onClick={() => handleEditEmail(user.userId)}
                       size="small"
                     >
                       <EditIcon size={18} />
@@ -166,7 +148,7 @@ const UserManagement: React.FC = () => {
                   <Select
                     value={user.role}
                     onChange={(e) =>
-                      handleRoleChange(user.id, e.target.value as User['role'])
+                      handleRoleChange(user.userId, e.target.value as UserList['role'])
                     }
                     size="small"
                     variant="standard"
@@ -191,8 +173,8 @@ const UserManagement: React.FC = () => {
               </TableCell>
               <TableCell>
                 <Chip
-                  label={user.active ? 'Active' : 'Inactive'}
-                  color={user.active ? 'success' : 'error'}
+                  label={user.isActive ? 'Active' : 'Inactive'}
+                  color={user.isActive ? 'success' : 'error'}
                   size="small"
                   sx={{
                     borderRadius: 1,
@@ -202,8 +184,8 @@ const UserManagement: React.FC = () => {
               </TableCell>
               <TableCell>
                 <Switch
-                  checked={user.active}
-                  onChange={() => handleToggleActive(user.id)}
+                  checked={user.isActive}
+                  onChange={() => handleToggleActive(user.userId)}
                   size="small"
                 />
               </TableCell>
@@ -216,8 +198,8 @@ const UserManagement: React.FC = () => {
 
   const UserCards = () => (
     <Grid container spacing={2}>
-      {filteredUsers.map((user) => (
-        <Grid item xs={12} key={user.id}>
+      {filteredUsers&&filteredUsers.map((user) => (
+        <Grid item xs={12} key={user.userId}>
           <Card>
             <CardContent>
               <Box
@@ -226,7 +208,7 @@ const UserManagement: React.FC = () => {
                 alignItems="center"
                 mb={1}
               >
-                {editingUserId === user.id ? (
+                {editingUserId === user.userId ? (
                   <Box display="flex" alignItems="center" width="100%">
                     <TextField
                       value={editingEmail}
@@ -235,7 +217,7 @@ const UserManagement: React.FC = () => {
                       fullWidth
                     />
                     <IconButton
-                      onClick={() => handleSaveEmail(user.id)}
+                      onClick={() => handleSaveEmail(user.userId)}
                       size="small"
                     >
                       <CheckIcon size={18} />
@@ -248,7 +230,7 @@ const UserManagement: React.FC = () => {
                   <>
                     <Typography variant="subtitle1">{user.email}</Typography>
                     <IconButton
-                      onClick={() => handleEditEmail(user.id)}
+                      onClick={() => handleEditEmail(user.userId)}
                       size="small"
                     >
                       <EditIcon size={18} />
@@ -264,7 +246,7 @@ const UserManagement: React.FC = () => {
                 <Select
                   value={user.role}
                   onChange={(e) =>
-                    handleRoleChange(user.id, e.target.value as User['role'])
+                    handleRoleChange(user.userId, e.target.value as UserList['role'])
                   }
                   size="small"
                   variant="standard"
@@ -280,14 +262,14 @@ const UserManagement: React.FC = () => {
                   sx={{ borderRadius: 1, fontSize: '0.625rem' }}
                 />
                 <Chip
-                  label={user.active ? 'Active' : 'Inactive'}
-                  color={user.active ? 'success' : 'error'}
+                  label={user.isActive ? 'Active' : 'Inactive'}
+                  color={user.isActive ? 'success' : 'error'}
                   size="small"
                   sx={{ borderRadius: 1, fontSize: '0.625rem' }}
                 />
                 <Switch
-                  checked={user.active}
-                  onChange={() => handleToggleActive(user.id)}
+                  checked={user.isActive}
+                  onChange={() => handleToggleActive(user.userId)}
                   size="small"
                 />
               </Box>
@@ -355,14 +337,18 @@ const UserManagement: React.FC = () => {
                   ),
                 }}
               />
-              <Button
-                variant="contained"
-                startIcon={<PlusIcon size={18} />}
-                onClick={() => setShowRegistrationForm(!showRegistrationForm)}
-                fullWidth={isVeryNarrow}
-              >
-                Add User
-              </Button>
+        
+                   <Button
+
+          fullWidth={isVeryNarrow}
+             variant="contained"
+           onClick={() => setShowRegistrationForm(!showRegistrationForm)}
+          startIcon={ <PlusIcon />}
+                >
+       Add user
+          </Button>
+
+
             </Box>
           </Box>
 
@@ -385,6 +371,13 @@ const UserManagement: React.FC = () => {
                   gap: 2,
                 }}
               >
+                  <TextField
+                  size="small"
+                  label="Full Name"
+                  value={fullName}
+                  onChange={(e) => setfullName(e.target.value)}
+                  fullWidth
+                />
                 <TextField
                   size="small"
                   label="Email"
@@ -396,26 +389,29 @@ const UserManagement: React.FC = () => {
                   size="small"
                   value={newUserRole}
                   onChange={(e) =>
-                    setNewUserRole(e.target.value as User['role'])
+                   setNewUserRole(e.target.value as UserList['role'])
                   }
                   fullWidth
                 >
-                  <MenuItem value="physician">Physician</MenuItem>
-                  <MenuItem value="radiologist">Radiologist</MenuItem>
-                  <MenuItem value="non-specialist">Non-Specialist</MenuItem>
+                  <MenuItem value="2">Physician</MenuItem>
+                  <MenuItem value="3">Radiologist</MenuItem>
+                  <MenuItem value="1">Non-Specialist</MenuItem>
                 </Select>
-                <Button
-                  variant="contained"
-                  onClick={handleRegisterUser}
-                  fullWidth={isMobile}
+               
+
+      <Button
+             variant="contained"
+           onClick={handleRegisterUser}
+       
                 >
-                  Register
-                </Button>
+            {loading ? <CircularProgress size={20} color="inherit" /> : "Register"}
+          </Button>
+
               </Box>
             </Box>
           </Collapse>
 
-          {users.length > 0 ? (
+          {users&&users.length > 0 ? (
             isMobile ? (
               <UserCards />
             ) : (
@@ -446,7 +442,7 @@ const UserManagement: React.FC = () => {
                 color="text.secondary"
                 sx={{ mt: 1, textAlign: 'center' }}
               >
-                Click the 'Add User' button to register a new user
+                Click the Add User button to register a new user
               </Typography>
             </Box>
           )}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Typography,
@@ -21,12 +22,12 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login , loading} = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit =  async(e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    if ( await login(email, password)) {
       navigate('/dashboard');
     } else {
       setError('Invalid email or password');
@@ -90,15 +91,15 @@ const Login: React.FC = () => {
                 {error}
               </Typography>
             )}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-              startIcon={<LoginIcon />}
-            >
-              Sign In
-            </Button>
+          <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          sx={{ mt: 3, mb: 2, py: 1.5 }}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
+                >
+            {loading ? "Signing In..." : "Sign In"}
+          </Button>
             <Box textAlign="center">
               <Link
                 component={RouterLink}

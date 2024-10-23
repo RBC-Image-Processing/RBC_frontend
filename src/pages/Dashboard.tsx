@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
       icon: Users,
       color: '#4CAF50',
       onClick: () => navigate('/users'),
-      roles: ['Administrator'],
+      roles: ['ADMINISTRATOR'],
     },
     {
       title: 'DICOM Vault',
@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
       icon: Film,
       color: '#2196F3',
       onClick: () => navigate('/dicom-viewer'),
-      roles: ['Administrator', 'Radiologist', 'Physician', 'Non-Specialist'],
+      roles: ['ADMINISTRATOR', 'RADIOLOGIST', 'PHYSICIAN', 'NON-SPECIALIST'],
     },
     {
       title: 'Radiologist Workspace',
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
       icon: Stethoscope,
       color: '#9C27B0',
       onClick: () => navigate('/radiologist-corner'),
-      roles: ['Radiologist'],
+      roles: ['RADIOLOGIST'],
     },
     {
       title: 'AI Assist',
@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
       icon: Brain,
       color: '#FF9800',
       onClick: () => navigate('/ai-interpretation'),
-      roles: ['Administrator', 'Physician', 'Non-Specialist'],
+      roles: ['ADMINISTRATOR', 'PHYSICIAN', 'NON-SPECIALIST'],
     },
   ];
 

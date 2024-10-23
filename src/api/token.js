@@ -1,23 +1,23 @@
 export const getToken = (key) => {
   try {
-    return JSON.parse(localStorage.getItem(key));
+    return JSON.parse(sessionStorage.getItem(key));
   } catch (err) {
-    console.log(`${err.message}. failed to get token `);
+    console.log(`${err.message}. Failed to get token`);
   }
 };
 
 export const setToken = (key, value) => {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem(key, JSON.stringify(value));
   } catch (err) {
-    console.log(`${err.message} failed to set token `);
+    console.log(`${err.message} Failed to set token`);
   }
 };
 
 export const deleteToken = (key) => {
   try {
-    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
   } catch (err) {
-    console.log(`${err.message} an error occurred on deleteToken`);
+    console.log(`${err.message} An error occurred on deleteToken`);
   }
 };

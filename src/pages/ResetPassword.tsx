@@ -37,7 +37,7 @@ const ResetPassword: React.FC = () => {
     // Here you would typically call an API to reset the password
     // For now, we'll just simulate a successful reset
     setIsSuccess(true);
-    setTimeout(() => navigate('/login'), 3000);
+  
   };
 
   return (
