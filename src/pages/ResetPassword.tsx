@@ -23,6 +23,11 @@ const ResetPassword: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
 
+  // Extract token from query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const token = queryParams.get('token');
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
