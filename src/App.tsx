@@ -18,60 +18,73 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UserManagement from './pages/UserManagement';
 import DICOMVault from './pages/DICOMVault';
+import RadiologyWorkspace from './pages/RadiologyWorkSpace';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import { CornerstoneProvider } from './contexts/CornerstoneContext';
 
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '100vh',
-            }}
-          >
-            <NavBar />
-            <Box component="main" sx={{ flexGrow: 1 }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/activate" element={<ActivateAccount />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <PrivateRoute>
-                      <Dashboard />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/users"
-                  element={
-                    <PrivateRoute>
-                      <UserManagement />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/dicom-viewer"
-                  element={
-                    <PrivateRoute>
-                      <DICOMVault />
-                    </PrivateRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+        <CornerstoneProvider>
+          <Router>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100vh',
+              }}
+            >
+              <NavBar />
+              <Box component="main" sx={{ flexGrow: 1 }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/activate" element={<ActivateAccount />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <PrivateRoute>
+                        <Dashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <PrivateRoute>
+                        <UserManagement />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/dicom-viewer"
+                    element={
+                      <PrivateRoute>
+                        <DICOMVault />
+                      </PrivateRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/radiologist-corner"
+                    element={
+                      <PrivateRoute>
+                        <RadiologyWorkspace />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Box>
+              <Footer />
             </Box>
-            <Footer />
-          </Box>
-        </Router>
+          </Router>
+        </CornerstoneProvider>
       </AuthProvider>
     </ThemeProvider>
   );
