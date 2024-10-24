@@ -15,10 +15,6 @@ import {
   Film,
   Stethoscope,
   Brain,
-  BarChart2,
-  Upload,
-  Search,
-  FileText,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -113,7 +109,7 @@ const Dashboard: React.FC = () => {
         'Leverage AI for automated image interpretation and analysis.',
       icon: Brain,
       color: '#FF9800',
-      onClick: () => navigate('/ai-interpretation'),
+      onClick: () => navigate('/ai-assist'),
       roles: ['Administrator', 'Physician', 'Non-Specialist'],
     },
   ];

@@ -22,6 +22,7 @@ import RadiologyWorkspace from './pages/RadiologyWorkSpace';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import { CornerstoneProvider } from './contexts/CornerstoneContext';
+import AIAssist from './pages/AIAssist';
 
 const App: React.FC = () => {
   return (
@@ -75,6 +76,14 @@ const App: React.FC = () => {
                     element={
                       <PrivateRoute>
                         <RadiologyWorkspace />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/ai-assist"
+                    element={
+                      <PrivateRoute>
+                        <AIAssist />
                       </PrivateRoute>
                     }
                   />
