@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import {
   Box,
@@ -55,6 +55,13 @@ const UserManagement: React.FC = () => {
     theme.breakpoints.down('md')
   );
   const isVeryNarrow = useMediaQuery('(max-width:450px)');
+
+
+
+  useEffect(() => {
+    getUsers(); // Fetch users when the component mounts
+  }, []); // Empty dependency array ensures it runs only once
+
 
   const handleRegisterUser = async() =>  {
     

@@ -46,10 +46,13 @@ export interface AuthContextType {
 export interface UserContextType {
   users: UserList[] | null;
   registerUser : (fullName: string, roleId: string, email: string) => Promise<boolean>;
-  errors:UserErr
-    loading: boolean | null
-    message:string,
-    getUsers : () => Promise<boolean>
+  errors:UserErr;
+  loading: boolean | null;
+  message:string;
+  getUsers : () => Promise<boolean>;
+  updateUser : (userId: string, data:object) => Promise<boolean>;
+  sendActivateAccountRequest: (email: string) => Promise<boolean>;
+  activateAccount: (newPassword: string) => Promise<boolean>;
 }
 
 export interface Instance {
