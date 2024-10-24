@@ -1,9 +1,9 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import {  UserContextType , UserErr, UserList} from '../types/index';
-import { AXIOS_GET, AXIOS_POST } from '../api/axios';
+import { AXIOS_GET, AXIOS_POST, AXIOS_PUT } from '../api/axios';
 import toast from "react-hot-toast";
-import { GET_USERS, REGISTER_USER , } from '../helper/Urls';
-import { Verified } from 'lucide-react';
+import { ACTIVATE_ACCOUNT, GET_USERS, REGISTER_USER, SEND_ACTIVATION_EMAIL, UPDATE_USER , } from '../helper/Urls';
+
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -76,7 +76,6 @@ const getUsers = async (): Promise<boolean> => {
     // Assume AXIOS_GET is properly typed or you can add its type like this:
     const res = await AXIOS_GET(GET_USERS);
 
-   console.log(res.data, "the res data");
 
     if (res.data.status === 200) {
       setUsers(res.data.data);
@@ -94,10 +93,76 @@ const getUsers = async (): Promise<boolean> => {
   return false;
 };
 
+const updateUser = async (userId: string, data: any): Promise<boolean> => {
+  setLoading(true);
+
+  try {
+    const res = await AXIOS_PUT(`${UPDATE_USER}${userId}`, data);
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      toast.success(res.data.message);
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Update failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+  return false;
+}
+
+const sendActivateAccountRequest = async (email: string): Promise<boolean> => {
+  setLoading(true);
+  try {
+    const res = await AXIOS_POST(SEND_ACTIVATION_EMAIL, { email });
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      toast.success(res.data.message);
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Update failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+
+  return false;
+
+}
+
+
+const activateAccount = async (newPassword: string): Promise<boolean> => {
+  setLoading(true);
+  try {
+    const res = await AXIOS_PUT(ACTIVATE_ACCOUNT, { newPassword });
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      toast.success(res.data.message);
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Update failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+  return false;
+
+}
+
+
 
 
   return (
-    <UserContext.Provider value={{  users, registerUser , loading, message,errors, getUsers}}>
+    <UserContext.Provider value={{  users, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers}}>
       {children}
     </UserContext.Provider>
   );
