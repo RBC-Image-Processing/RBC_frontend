@@ -7,10 +7,8 @@ import {
   Typography,
   Alert,
   Chip,
-  Divider,
   useTheme,
   alpha,
-  IconButton,
   Tooltip,
 } from '@mui/material';
 import {
@@ -23,12 +21,10 @@ import {
   FileText,
 } from 'lucide-react';
 
+import { Interpretation } from '../../types/radiologist';
+
 interface InterpretationFormProps {
-  interpretation: {
-    text: string;
-    radiologistId: string;
-    createdAt: string;
-  } | null;
+  interpretation: Interpretation | null;
   currentRadiologistId: string;
   onSubmit: (text: string) => void;
 }

@@ -13,7 +13,6 @@ import {
   ZoomOut,
   RotateCw,
   RefreshCw,
-  Maximize2,
   Image as ImageIcon,
 } from 'lucide-react';
 import cornerstone from 'cornerstone-core';

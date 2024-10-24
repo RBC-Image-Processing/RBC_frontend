@@ -22,7 +22,7 @@ const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-const StyledModal = styled(Modal)(({ theme }) => ({
+const StyledModal = styled(Modal)(() => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -55,8 +55,8 @@ const ActivateAccount: React.FC = () => {
   const navigate = useNavigate();
 
   // Extract token from query parameters
-  const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get('token');
+  // const queryParams = new URLSearchParams(location.search);
+  // const token = queryParams.get('token');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

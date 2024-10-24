@@ -1,4 +1,3 @@
-// File: src/components/RadiologyWorkspace/RadiologyWorkspace.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Grid,
@@ -7,37 +6,31 @@ import {
   Snackbar,
   useTheme,
   useMediaQuery,
+  IconButton,
+  Drawer,
+  Stack,
 } from '@mui/material';
-import { WorkspaceLayout } from '../components/RadiologyWorkSpace/WorkSpaceLayout';
 import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
 import { InterpretationForm } from '../components/RadiologyWorkSpace/InterpretationForm';
 import { Study } from '../types/index';
 import { Interpretation } from '../types/radiologist';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
+import { Menu } from 'lucide-react';
 
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const [showInterpretation, setShowInterpretation] = useState(!isMobile);
-  const isInitialized = useCornerstoneContext();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  useCornerstoneContext();
+
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [currentInstance, setCurrentInstance] = useState(0);
-  const [interpretation, setInterpretation] = useState<Partial<Interpretation>>(
-    {
-      text: 'No obvious fractures or lytic lesions. Mild\
-       degenerative changes are seen in the thoracic spine.Right lower lobe consolidation, \
-       likely infectious in nature (pneumonia).',
-      radiologistId: 'RD00023',
-      createdAt: '20/10/2024',
-    }
-  );
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error',
+  const [studyListOpen, setStudyListOpen] = useState(false);
+  const [interpretation, setInterpretation] = useState<Interpretation>({
+    text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
+    radiologistId: 'RD00023',
+    createdAt: new Date().toISOString(),
   });
 
   useEffect(() => {
@@ -355,184 +348,179 @@ export const RadiologyWorkspace: React.FC = () => {
         ]);
       } catch (error) {
         console.error('Error fetching studies:', error);
-        showSnackbar('Error loading studies', 'error');
       }
     };
 
     fetchStudies();
   }, []);
 
-  // Drawer width calculation based on screen size
-  const getDrawerWidth = () => {
-    if (isSmallScreen) return '100%';
-    if (isMobile) return '80%';
-    return '400px';
-  };
-
   const handleStudySelect = async (study: Study) => {
     setSelectedStudy(study);
+    if (isMobile) {
+      setStudyListOpen(false);
+    }
     setCurrentInstance(0);
-
-    // try {
-    //   // This would be replaced with an actual API call
-    //   const response = await fetch(`/api/interpretations/${study.id}`);
-    //   const existingInterpretation = await response.json();
-
-    //   if (existingInterpretation) {
-    //     setInterpretation(existingInterpretation);
-    //   } else {
-    //     // setInterpretation();
-    //   }
-    // } catch (error) {
-    //   console.error('Error loading interpretation:', error);
-    //   showSnackbar('Error loading interpretation', 'error');
-    // }
-  };
-
-  const handleInterpretationChange = (
-    field: keyof Interpretation,
-    value: string
-  ) => {
-    setInterpretation((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSave = async () => {
-    try {
-      // This would be replaced with an actual API call
-      await fetch(`/api/interpretations/${selectedStudy?.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...interpretation,
-          studyId: selectedStudy?.id,
-          status: 'draft',
-        }),
-      });
-
-      showSnackbar('Interpretation saved successfully', 'success');
-    } catch (error) {
-      console.error('Error saving interpretation:', error);
-      showSnackbar('Error saving interpretation', 'error');
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      // This would be replaced with an actual API call
-      await fetch(`/api/interpretations/${selectedStudy?.id}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...interpretation,
-          studyId: selectedStudy?.id,
-          status: 'submitted',
-        }),
-      });
-
-      showSnackbar('Interpretation submitted successfully', 'success');
-      // Optionally, refresh the studies list or mark this study as completed
-    } catch (error) {
-      console.error('Error submitting interpretation:', error);
-      showSnackbar('Error submitting interpretation', 'error');
-    }
-  };
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
   };
 
   return (
-    <WorkspaceLayout
-      sidebarContent={
-        <ImageList
-          studies={studies}
-          onStudySelect={handleStudySelect}
-          selectedStudy={selectedStudy!}
-        />
-      }
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      {selectedStudy ? (
-        <Box
+      {/* Mobile Controls */}
+      {isMobile && (
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
           sx={{
-            height: '100%',
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
+            p: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
           }}
         >
-          <Grid
-            container
-            spacing={2}
-            sx={{
-              minHeight: isMobile ? 'auto' : '100%',
-              flexDirection: isMobile ? 'column' : 'row',
-            }}
-          >
+          <IconButton onClick={() => setStudyListOpen(true)}>
+            <Menu />
+          </IconButton>
+        </Stack>
+      )}
+
+      {/* Main Content */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          // Center content vertically on larger screens
+          ...(!isMobile && {
+            justifyContent: 'center',
+            py: 4, // Add vertical padding on desktop
+          }),
+        }}
+      >
+        <Grid
+          container
+          sx={{
+            height: isMobile ? '100%' : '85vh', // Set to 85% of viewport height on desktop
+            maxHeight: isMobile ? '100%' : '1000px', // Prevent excessive height on very large screens
+          }}
+        >
+          {/* Study List */}
+          {!isMobile && (
             <Grid
               item
               xs={12}
-              md={8}
+              md={3}
               sx={{
-                height: isMobile ? '60vh' : '100%',
-                minHeight: isMobile ? '400px' : 'auto',
+                height: '100%',
+                borderRight: 1,
+                borderColor: 'divider',
+                overflow: 'auto',
               }}
             >
+              <ImageList
+                studies={studies}
+                onStudySelect={handleStudySelect}
+                selectedStudy={selectedStudy!}
+              />
+            </Grid>
+          )}
+
+          {/* Image Viewer */}
+          <Grid
+            item
+            xs={12}
+            md={6}
+            sx={{
+              height: isMobile ? '50vh' : '100%',
+              minHeight: isMobile ? 300 : 'auto',
+              // Add bottom margin on mobile when stacked
+              ...(isMobile && {
+                mb: 2,
+              }),
+            }}
+          >
+            {selectedStudy ? (
               <ImageViewer
                 study={selectedStudy}
                 currentInstance={currentInstance}
                 onInstanceChange={setCurrentInstance}
               />
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              md={4}
-              sx={{
-                height: isMobile ? 'auto' : '100%',
-                minHeight: isMobile ? '300px' : 'auto',
-              }}
-            >
-              <InterpretationForm
-                interpretation={interpretation!}
-                currentRadiologistId="RD00023"
-                onSubmit={handleSubmit}
-              />
-            </Grid>
+            ) : (
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 2,
+                }}
+              >
+                <Alert severity="info">
+                  {isMobile
+                    ? 'Tap the menu icon to select a study'
+                    : 'Select a study from the list to begin'}
+                </Alert>
+              </Box>
+            )}
           </Grid>
-        </Box>
-      ) : (
-        <Box
+
+          {/* Interpretation Form */}
+          <Grid
+            item
+            xs={12}
+            md={3}
+            sx={{
+              height: isMobile ? '50vh' : '100%',
+              minHeight: isMobile ? 300 : 'auto',
+              borderLeft: isMobile ? 'none' : 1,
+              borderTop: isMobile ? 1 : 'none',
+              borderColor: 'divider',
+              // Add bottom padding on mobile to prevent footer collision
+              ...(isMobile && {
+                pb: 4, // Increase this value if needed
+              }),
+            }}
+          >
+            <InterpretationForm
+              interpretation={interpretation}
+              currentRadiologistId="RD00023"
+              onSubmit={() => {}}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Mobile Study List Drawer */}
+      {isMobile && (
+        <Drawer
+          anchor="left"
+          open={studyListOpen}
+          onClose={() => setStudyListOpen(false)}
           sx={{
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            '& .MuiDrawer-paper': {
+              width: '100%',
+              maxWidth: 360,
+              height: '100%',
+            },
           }}
         >
-          <Alert severity="info">
-            Please select a study from the list to begin interpretation
-          </Alert>
-        </Box>
+          <ImageList
+            studies={studies}
+            onStudySelect={handleStudySelect}
+            selectedStudy={selectedStudy!}
+          />
+        </Drawer>
       )}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      >
-        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+
+      {/* Snackbar */}
+      <Snackbar open={false} autoHideDuration={6000} onClose={() => {}}>
+        <Alert severity="success">Success</Alert>
       </Snackbar>
-    </WorkspaceLayout>
+    </Box>
   );
 };
 
