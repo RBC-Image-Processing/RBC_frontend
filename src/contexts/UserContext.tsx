@@ -93,7 +93,7 @@ const getUsers = async (): Promise<boolean> => {
   return false;
 };
 
-const updateUser = async (userId: string, data: any): Promise<boolean> => {
+const updateUser = async (userId: string, data: object): Promise<boolean> => {
   setLoading(true);
 
   try {

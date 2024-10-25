@@ -11,9 +11,24 @@ export interface User {
   role: UserRole;
 }
 
+
+export interface EditingUser {
+  userId:string
+  isEmail:boolean
+}
+
+
+export interface Role {
+  roleName: string;
+  roleId: string;
+}
+
+
 export interface UserList {
   userId: string;
   email: string;
+  fullName:string;
+  Role: Role;
   role: UserRole;
   verified: boolean;
   isActive: boolean;
