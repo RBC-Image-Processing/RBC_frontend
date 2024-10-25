@@ -913,7 +913,7 @@ export const AIAssist: React.FC = () => {
                           size="large"
                           sx={{
                             '& .MuiRating-iconFilled': {
-                              color: theme.palette.primary.main,
+                              color: theme.palette.secondary.main,
                             },
                           }}
                         />
