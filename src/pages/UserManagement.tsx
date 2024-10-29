@@ -36,8 +36,7 @@ import {
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import {UserList, EditingUser} from "../types/index"
-
-
+import HashLoader from "react-spinners/HashLoader";
 
 
 const UserManagement: React.FC = () => {
@@ -51,7 +50,7 @@ const UserManagement: React.FC = () => {
   const [editingfullName, setEditingfullName] = useState('');
   const [isUpdateSuccess, setIsUpdateSuccess] = useState(false);
 
-    const {loading, users,getUsers, registerUser, updateUser} = useUser();
+    const {loading, users,getUsers, registerUser, updateUser, sendActivateAccountRequest} = useUser();
 
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('md')
@@ -68,24 +67,44 @@ useEffect(() => {
 }, [isUpdateSuccess]);
 
 useEffect(() => {
-  getUsers();
+  //Only Load the users when the user object is empty
+  if(users&&users.length ==0){
+    getUsers();
+  }
+  
 } ,[]);
 
 
   const handleRegisterUser = async() =>  {
-    
+try {
+      
     if(await  registerUser(fullName,newUserRole,newUserEmail)){
+
+      //send an email to the newly created user 
+      await sendActivateAccountRequest(newUserEmail);
+
       setShowRegistrationForm(false);
-      await getUsers();
+      clearUserInfo()
+      setIsUpdateSuccess(true);
    }
+} catch (error) {
+  console.error('Failed to register user:', error);
+}
   
   };
+
+
+  const clearUserInfo= () =>{
+    setfullName('');
+    setNewUserEmail('');
+    setNewUserRole('PHYSICIAN');
+  }
 
   const handleRoleChange =  async(userId: string, newRole: UserList['role']) => {
 
     try {
       await updateUser(userId, { roleId: newRole });
-      setIsUpdateSuccess(true); // Trigger re-fetching of users
+      setIsUpdateSuccess(true); 
        setEditingUser(null);
       
     } catch (error) {
@@ -107,7 +126,7 @@ useEffect(() => {
     const user = users&&users.find((u) => u.userId === userId);
     if (user) {
         setEditingUser({userId:userId, isEmail:isEmail});
-      setEditingfullName(user.email);
+      setEditingfullName(user.fullName);
     }
   };
 
@@ -149,6 +168,8 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
       }
   };
 
+  
+
 
 
   const filteredUsers = users && users.filter((user) =>
@@ -157,7 +178,22 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
 
   const UserTable = () => (
     <TableContainer>
-      <Table>
+     {loading ?   <Box
+  sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh', // Full viewport height for vertical centering
+    bgcolor: 'background.default',
+  }}
+>
+  <HashLoader
+    color={"#005A9C"} // Use MUI theme color
+    loading={true}
+    size={50}
+    speedMultiplier={1}
+  />
+</Box>: <Table>
         <TableHead>
           <TableRow>
                  <TableCell sx={{ fontWeight: 'bold' }}>Full Name</TableCell>
@@ -285,7 +321,7 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table>}
     </TableContainer>
   );
 
@@ -399,7 +435,7 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
                 />
                 <Switch
                   checked={user.isActive}
-                  onChange={() => handleToggleActive(user.userId)}
+                  onChange={() => handleToggleActive(user.userId, user.isActive)}
                   size="small"
                 />
               </Box>
@@ -469,11 +505,10 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
               />
         
                    <Button
-
-          fullWidth={isVeryNarrow}
-             variant="contained"
-           onClick={() => setShowRegistrationForm(!showRegistrationForm)}
-          startIcon={ <PlusIcon />}
+                  fullWidth={isVeryNarrow}
+                    variant="contained"
+                  onClick={() => setShowRegistrationForm(!showRegistrationForm)}
+                  startIcon={ <PlusIcon />}
                 >
        Add user
           </Button>
@@ -523,6 +558,7 @@ const handleToggleActive = async (userId: string, isActive: boolean) => {
                   }
                   fullWidth
                 >
+                  <MenuItem value="4">Administrator</MenuItem>
                   <MenuItem value="2">Physician</MenuItem>
                   <MenuItem value="3">Radiologist</MenuItem>
                   <MenuItem value="1">Non-Specialist</MenuItem>

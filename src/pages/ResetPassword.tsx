@@ -13,6 +13,7 @@ import {
   Alert,
 } from '@mui/material';
 import { Save as SaveIcon, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -21,21 +22,25 @@ const ResetPassword: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
-  const navigate = useNavigate();
 
+ const { resetPassword , loading} = useAuth();
   // Extract token from query parameters
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get('token');
 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit =  async(e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Passwords don't match");
       return;
     }
     // Here you would typically call an API to reset the password
-    // For now, we'll just simulate a successful reset
+    try {
+      await  resetPassword(password,token)
+    } catch (error) {
+      console.error('Error resetting password:', error);
+    }
     setIsSuccess(true);
   
   };
