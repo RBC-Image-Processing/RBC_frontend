@@ -19,67 +19,91 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UserManagement from './pages/UserManagement';
 import DICOMVault from './pages/DICOMVault';
+import RadiologyWorkspace from './pages/RadiologyWorkSpace';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import { CornerstoneProvider } from './contexts/CornerstoneContext';
+import AIAssist from './pages/AIAssist';
 import { UserProvider } from './contexts/UserContext';
+
 
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-           <UserProvider>
-        <Router>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '100vh',
-            }}
-          >
-            <NavBar />
-            <Box component="main" sx={{ flexGrow: 1 }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/activate" element={<ActivateAccount />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <PrivateRoute>
-                      <Dashboard />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/users"
-                  element={
-                    <PrivateRoute>
-                      <UserManagement />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/dicom-viewer"
-                  element={
-                    <PrivateRoute>
-                      <DICOMVault />
-                    </PrivateRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+<!--       <AuthProvider> -->
+          <UserProvider>
+        <CornerstoneProvider>
+          <Router>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100vh',
+              }}
+            >
+              <NavBar />
+              <Box component="main" sx={{ flexGrow: 1 }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/activate" element={<ActivateAccount />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <PrivateRoute>
+                        <Dashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <PrivateRoute>
+                        <UserManagement />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/dicom-viewer"
+                    element={
+                      <PrivateRoute>
+                        <DICOMVault />
+                      </PrivateRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/radiologist-corner"
+                    element={
+                      <PrivateRoute>
+                        <RadiologyWorkspace />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/ai-assist"
+                    element={
+                      <PrivateRoute>
+                        <AIAssist />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Box>
+              <Footer />
             </Box>
-            <Footer />
-          </Box>
-        </Router>
-          <Toaster
+          </Router>
+        </CornerstoneProvider>
+               <Toaster
       position="top-right"
       reverseOrder={false} />
        </UserProvider>
-      </AuthProvider>
+
+//       </AuthProvider>
       
     </ThemeProvider>
   );

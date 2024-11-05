@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import {  UserContextType , UserErr, UserList} from '../types/index';
+import {  LoggedUser, User, UserContextType , UserErr, UserList} from '../types/index';
 import { AXIOS_GET, AXIOS_POST, AXIOS_PUT } from '../api/axios';
 import toast from "react-hot-toast";
 import { ACTIVATE_ACCOUNT, GET_USERS, REGISTER_USER, SEND_ACTIVATION_EMAIL, UPDATE_USER , } from '../helper/Urls';
@@ -11,6 +11,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
    const [users, setUsers] = useState<UserList[]>([]);
+   const [loggedInUser, setLoggedInUser] = useState<LoggedUser| null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [errors, setErrors] = useState<UserErr>({
@@ -18,7 +19,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     email: '',
     roleId:''
   });
-
 
 
 
@@ -80,7 +80,8 @@ const getUsers = async (): Promise<boolean> => {
     if (res.data.status === 200) {
       setUsers(res.data.data);
       setLoading(false);
-      toast.success(res.data.message);   
+
+      // toast.success(res.data.message);    
       return true;
     }
   } catch (err: any) {
@@ -93,7 +94,33 @@ const getUsers = async (): Promise<boolean> => {
   return false;
 };
 
-const updateUser = async (userId: string, data: any): Promise<boolean> => {
+
+const getUser = async (userId:string): Promise<boolean> => {
+  setLoading(true);
+
+  try {
+    // Assume AXIOS_GET is properly typed or you can add its type like this:
+    const res = await AXIOS_GET(`${GET_USERS}${userId}`);
+
+    if (res.data.status === 200) {
+      console.log(res.data.data, "the api")
+      setLoggedInUser(res.data.data);
+      setLoading(false);
+      // toast.success(res.data.message);   
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Login failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+  return false;
+};
+
+
+const updateUser = async (userId: string, data: object): Promise<boolean> => {
   setLoading(true);
 
   try {
@@ -137,10 +164,10 @@ const sendActivateAccountRequest = async (email: string): Promise<boolean> => {
 }
 
 
-const activateAccount = async (newPassword: string): Promise<boolean> => {
+const activateAccount = async (newPassword: string, token: string | null): Promise<boolean> => {
   setLoading(true);
   try {
-    const res = await AXIOS_PUT(ACTIVATE_ACCOUNT, { newPassword });
+    const res = await AXIOS_POST(`${ACTIVATE_ACCOUNT}/?token=${token}`, { newPassword });
 
     if (res.data.status === 200) {
       setLoading(false);
@@ -162,7 +189,7 @@ const activateAccount = async (newPassword: string): Promise<boolean> => {
 
 
   return (
-    <UserContext.Provider value={{  users, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers}}>
+    <UserContext.Provider value={{  users, loggedInUser, getUser, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers}}>
       {children}
     </UserContext.Provider>
   );

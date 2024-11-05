@@ -7,6 +7,7 @@ import {
   LayoutDashboard as DashboardIcon,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import {getToken} from "../api/token"
 
 const Logo = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -23,7 +24,8 @@ const Logo = styled('div')(({ theme }) => ({
 }));
 
 const NavBar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const {  logout } = useAuth();
+  const token = getToken("token"); 
   const navigate = useNavigate();
 
   return (
@@ -43,7 +45,7 @@ const NavBar: React.FC = () => {
           </Typography>
         </Logo>
         <Box sx={{ flexGrow: 1 }} />
-        {user ? (
+        {token ? (
           <>
             <Button
               color="primary"

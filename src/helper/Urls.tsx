@@ -7,6 +7,10 @@ export const baseURL = "http://localhost:8000"
 
 export const POST_LOGIN = "/api/auth/login"
 
+export const SEND_RESET_PASSWORD_EMAIL = "/api/auth/request-password-reset"
+
+export const RESET_PASSWORD = "/api/auth/password-reset"
+
 
 // User Management 
 

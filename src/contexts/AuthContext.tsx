@@ -1,9 +1,9 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { User, AuthContextType, Err } from '../types/index';
-import { setToken } from '../api/token';
+import { deleteToken, setToken } from '../api/token';
 import { AXIOS_POST } from '../api/axios';
 import toast from "react-hot-toast";
-import { POST_LOGIN } from '../helper/Urls';
+import { POST_LOGIN, RESET_PASSWORD, SEND_RESET_PASSWORD_EMAIL } from '../helper/Urls';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -66,15 +66,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       if (res.data.status === 200) {
         if (res.data.data.token) {
-          const { token, roleName, userId } = res.data.data;
+          const { token, roleName} = res.data.data;
           setToken('token', token);
-          setToken('role', roleName);
-          setToken('userId', userId);
-
           setLoading(false);
           toast.success(message);
-
-       
 
           setUser( {
               token,
@@ -98,10 +93,54 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return false;
   };
 
-  const logout = () => setUser(null);
+
+  const sendResetPasswordRequest = async (email: string): Promise<boolean> => {
+  setLoading(true);
+  try {
+    const res = await AXIOS_POST(SEND_RESET_PASSWORD_EMAIL, { email });
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      toast.success(res.data.message);
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Update failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+
+  return false;
+
+}
+
+
+const resetPassword = async (newPassword: string, token:string): Promise<boolean> => {
+  setLoading(true);
+  try {
+    const res = await AXIOS_POST(`${RESET_PASSWORD}/?token=${token}`, { newPassword });
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      toast.success(res.data.message);
+      return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Update failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+  return false;
+
+}
+  const logout = () => deleteToken('token');
 
   return (
-    <AuthContext.Provider value={{ user, login, logout , loading, message,errors}}>
+    <AuthContext.Provider value={{ user, login, logout , loading, sendResetPasswordRequest, resetPassword, message,errors}}>
       {children}
     </AuthContext.Provider>
   );

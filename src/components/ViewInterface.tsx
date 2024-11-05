@@ -10,6 +10,7 @@ import {
 import { Study } from '../types/index';
 import { DICOMTable } from './DICOMTable';
 import { DICOMViewer } from './DICOMViewer';
+import axios from 'axios';
 
 export const ViewInterface: React.FC = () => {
   const [searchCriteria, setSearchCriteria] = useState<Record<string, string>>({
@@ -24,38 +25,61 @@ export const ViewInterface: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // useEffect(() => {
+  //   const fetchStudies = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       // This would typically be an API call
+  //       const studies: Study[] = [
+  //         {
+  //           id: '1',
+  //           patientId: '12345',
+  //           studyDate: '2023-05-15',
+  //           description: 'Chest X-Ray',
+  //           modality: 'XR',
+  //           instances: [
+  //             { id: '1-1', imagePath: '/images/sample_dicom.dcm' },
+  //             { id: '1-2', imagePath: '/images/sample_dicom1.dcm' },
+  //           ],
+  //         },
+  //         {
+  //           id: '2',
+  //           patientId: '67890',
+  //           studyDate: '2023-05-14',
+  //           description: 'Brain MRI',
+  //           modality: 'MR',
+  //           instances: [
+  //             { id: '2-1', imagePath: '/images/sample_dicom.dcm' },
+  //             { id: '2-2', imagePath: '/images/sample_dicom1.dcm' },
+  //             { id: '2-3', imagePath: '/images/sample_dicom2.dcm' },
+  //           ],
+  //         },
+  //       ];
+  //       setAllStudies(studies);
+  //       setFilteredStudies(studies);
+  //     } catch (error) {
+  //       console.error('Error fetching studies:', error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchStudies();
+  // }, []);
+
+
   useEffect(() => {
     const fetchStudies = async () => {
       setIsLoading(true);
       try {
-        // This would typically be an API call
-        const studies: Study[] = [
-          {
-            id: '1',
-            patientId: '12345',
-            studyDate: '2023-05-15',
-            description: 'Chest X-Ray',
-            modality: 'XR',
-            instances: [
-              { id: '1-1', imagePath: '/images/sample_dicom.dcm' },
-              { id: '1-2', imagePath: '/images/sample_dicom1.dcm' },
-            ],
-          },
-          {
-            id: '2',
-            patientId: '67890',
-            studyDate: '2023-05-14',
-            description: 'Brain MRI',
-            modality: 'MR',
-            instances: [
-              { id: '2-1', imagePath: '/images/sample_dicom.dcm' },
-              { id: '2-2', imagePath: '/images/sample_dicom1.dcm' },
-              { id: '2-3', imagePath: '/images/sample_dicom2.dcm' },
-            ],
-          },
-        ];
-        setAllStudies(studies);
-        setFilteredStudies(studies);
+        // Make the API call to fetch studies
+        const response = await axios.get<Study[]>('http://localhost:8000/api/study');
+
+        console.log(response, "the response")
+        
+        // Update the state with the fetched studies
+        setAllStudies(response.data);
+        setFilteredStudies(response.data);
       } catch (error) {
         console.error('Error fetching studies:', error);
       } finally {

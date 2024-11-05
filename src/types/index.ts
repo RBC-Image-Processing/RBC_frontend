@@ -11,9 +11,31 @@ export interface User {
   role: UserRole;
 }
 
+export interface LoggedUser {
+		email: string
+		fullName: string
+		roleName: string
+
+}
+
+
+export interface EditingUser {
+  userId:string
+  isEmail:boolean
+}
+
+
+export interface Role {
+  roleName: string;
+  roleId: string;
+}
+
+
 export interface UserList {
   userId: string;
   email: string;
+  fullName:string;
+  Role: Role;
   role: UserRole;
   verified: boolean;
   isActive: boolean;
@@ -38,6 +60,8 @@ export interface AuthContextType {
   login: (email: string, password: string) =>  Promise<boolean>;
   logout: () => void;
   loading: boolean | null
+  sendResetPasswordRequest:(email: string) => Promise<boolean>;
+  resetPassword: (newPassword: string, token:string|null) => Promise<boolean>;
   message:string,
   errors:Err
 }
@@ -50,20 +74,24 @@ export interface UserContextType {
   loading: boolean | null;
   message:string;
   getUsers : () => Promise<boolean>;
+  getUser:(userId:string)=> Promise<boolean>;
   updateUser : (userId: string, data:object) => Promise<boolean>;
   sendActivateAccountRequest: (email: string) => Promise<boolean>;
-  activateAccount: (newPassword: string) => Promise<boolean>;
+  activateAccount: (newPassword: string, token:string|null) => Promise<boolean>;
+  loggedInUser: LoggedUser | null;
 }
+
 
 export interface Instance {
   id: string;
-  imagePath: string;
+  // imagePath: string;
 }
 
 export interface Study {
-  id: string;
+  // id: string;
   patientId: string;
-  studyDate: string;
+  studyId: string;
+  studyDate:string;
   description: string;
   modality: 'XR' | 'MR';
   instances: Instance[];

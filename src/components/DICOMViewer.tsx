@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from "axios";
 import {
   Typography,
   Button,
@@ -31,51 +32,107 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
     setCurrentInstanceIndex(0);
   }, []);
 
-  useEffect(() => {
-    const loadAndRenderImage = async () => {
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
+  // useEffect(() => {
+  //   const loadAndRenderImage = async () => {
+  //     if (canvasRef.current) {
+  //       const canvas = canvasRef.current;
 
-        try {
-          const instance = study.instances[currentInstanceIndex];
-          const response = await fetch(instance.imagePath);
-          const arrayBuffer = await response.arrayBuffer();
+  //       try {
+  //         const instance = study.instances[currentInstanceIndex];
+  //         const response = await fetch(instance.imagePath);
+  //         const arrayBuffer = await response.arrayBuffer();
 
-          const image = dicomts.parseImage(arrayBuffer);
+  //         const image = dicomts.parseImage(arrayBuffer);
 
-          if (image) {
-            // Log some DICOM tags
-            console.log('PatientID:', image.patientID);
-            const patientName = image.getTagValue([0x0010, 0x0010]);
-            console.log(
-              'PatientName:',
-              patientName ? patientName.toString() : 'N/A'
-            );
+  //         if (image) {
+  //           // Log some DICOM tags
+  //           console.log('PatientID:', image.patientID);
+  //           const patientName = image.getTagValue([0x0010, 0x0010]);
+  //           console.log(
+  //             'PatientName:',
+  //             patientName ? patientName.toString() : 'N/A'
+  //           );
 
-            // Create or reuse the renderer
-            if (!rendererRef.current) {
-              rendererRef.current = new dicomts.Renderer(canvas);
-            }
+  //           // Create or reuse the renderer
+  //           if (!rendererRef.current) {
+  //             rendererRef.current = new dicomts.Renderer(canvas);
+  //           }
 
-            // Render the image
-            await rendererRef.current.render(image, 0);
-          } else {
-            throw new Error('Failed to parse DICOM image');
+  //           // Render the image
+  //           await rendererRef.current.render(image, 0);
+  //         } else {
+  //           throw new Error('Failed to parse DICOM image');
+  //         }
+  //       } catch (error) {
+  //         console.error('Error loading DICOM image:', error);
+  //         const ctx = canvas.getContext('2d');
+  //         if (ctx) {
+  //           ctx.font = '20px Arial';
+  //           ctx.fillStyle = 'red';
+  //           ctx.fillText('Error loading image', 10, 50);
+  //         }
+  //       }
+  //     }
+  //   };
+
+  //   loadAndRenderImage();
+  // }, [study, currentInstanceIndex]);
+
+useEffect(() => {
+  const loadAndRenderImage = async () => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+
+      try {
+        // Get the current instance object
+        const instance = study.instances[currentInstanceIndex];
+
+        // Make an API call to fetch the DICOM image buffer
+        const response = await axios.get(
+          `/instances/${instance.id}/file`, // Adjust the URL as needed
+          { responseType: "arraybuffer" } // Ensure binary data handling
+        );
+        const arrayBuffer = response.data; // Access the binary data
+
+        // Parse the DICOM image using dicom.ts
+        const image = dicomts.parseImage(arrayBuffer);
+
+        if (image) {
+          // Log some DICOM tags (optional)
+          console.log("PatientID:", image.patientID);
+          const patientName = image.getTagValue([0x0010, 0x0010]);
+          console.log(
+            "PatientName:",
+            patientName ? patientName.toString() : "N/A"
+          );
+
+          // Create or reuse the renderer
+          if (!rendererRef.current) {
+            rendererRef.current = new dicomts.Renderer(canvas);
           }
-        } catch (error) {
-          console.error('Error loading DICOM image:', error);
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.font = '20px Arial';
-            ctx.fillStyle = 'red';
-            ctx.fillText('Error loading image', 10, 50);
-          }
+
+          // Render the parsed DICOM image onto the canvas
+          await rendererRef.current.render(image, 0);
+        } else {
+          throw new Error("Failed to parse DICOM image");
+        }
+      } catch (error) {
+        // Handle errors in fetching or rendering
+        console.error("Error loading DICOM image:", error);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.font = "20px Arial";
+          ctx.fillStyle = "red";
+          ctx.fillText("Error loading image", 10, 50);
         }
       }
-    };
+    }
+  };
 
-    loadAndRenderImage();
-  }, [study, currentInstanceIndex]);
+  // Call the function to load and render the image
+  loadAndRenderImage();
+}, [study, currentInstanceIndex]);
+
 
   const handlePrevious = () => {
     setCurrentInstanceIndex((prev) => (prev > 0 ? prev - 1 : prev));

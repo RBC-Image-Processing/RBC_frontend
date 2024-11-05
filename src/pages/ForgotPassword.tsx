@@ -8,20 +8,28 @@ import {
   CardContent,
   TextField,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import { Send as SendIcon } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const ForgotPassword: React.FC = () => {
 
-
+const {sendResetPasswordRequest, loading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically call an API to send the reset link
-    // For now, we'll just simulate a successful submission
+    try {
+      await sendResetPasswordRequest(email);
+      // For now, we'll just simulate a successful submission
+    } catch (error) {
+      console.error('Error sending reset link:', error);
+      
+    }
     setIsSubmitted(true);
   };
 
@@ -41,8 +49,8 @@ const ForgotPassword: React.FC = () => {
           {!isSubmitted ? (
             <Box component="form" onSubmit={handleSubmit} noValidate>
               <Typography variant="body2" mb={2}>
-                Enter your email address and we'll send you a link to reset your
-                password.
+                Enter your email address and a link will be sent to your email for password reset.
+            
               </Typography>
               <TextField
                 margin="normal"
@@ -56,15 +64,17 @@ const ForgotPassword: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2, py: 1.5 }}
-                startIcon={<SendIcon />}
-              >
-                Send Reset Link
-              </Button>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2, py: 1.5 }}
+              startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+           
+            >
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Button>
+
             </Box>
           ) : (
             <Alert severity="success">
