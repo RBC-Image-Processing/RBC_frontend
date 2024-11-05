@@ -84,13 +84,14 @@ export interface UserContextType {
 
 export interface Instance {
   id: string;
-  imagePath: string;
+  // imagePath: string;
 }
 
 export interface Study {
-  id: string;
+  // id: string;
   patientId: string;
-  studyDate: string;
+  studyId: string;
+  studyDate:string;
   description: string;
   modality: 'XR' | 'MR';
   instances: Instance[];
