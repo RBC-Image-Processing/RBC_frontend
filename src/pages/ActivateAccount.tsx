@@ -16,6 +16,7 @@ import {
 import { styled, keyframes } from '@mui/material/styles';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '../contexts/UserContext';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -52,13 +53,14 @@ const ActivateAccount: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const { login } = useAuth();
+    const {loading, activateAccount} = useUser();
   const navigate = useNavigate();
 
   // Extract token from query parameters
   // const queryParams = new URLSearchParams(location.search);
   // const token = queryParams.get('token');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -68,15 +70,21 @@ const ActivateAccount: React.FC = () => {
       setError('Password must be at least 8 characters long');
       return;
     }
-    // Here you would typically make an API call to update the password
+    try {
+      // Here you would typically make an API call to update the password
+      await activateAccount(password, token)
+    } catch (error) {
+      console.error('Error activating account:', error);
+    }
     // For this example, we'll just simulate a successful password update
     setIsModalOpen(true);
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = async() => {
+
     setIsModalOpen(false);
     // Simulate logging in with the new password
-    if (login('user@example.com', 'password')) {
+    if (await login('user@example.com', 'password')) {
       navigate('/dashboard');
     }
   };

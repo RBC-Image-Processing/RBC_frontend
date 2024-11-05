@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Typography,
@@ -10,6 +10,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import HashLoader from "react-spinners/HashLoader";
 import {
   Users,
   Film,
@@ -17,7 +18,10 @@ import {
   Brain,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-
+import {getToken} from "../api/token"
+import { decodeToken } from '../util/decodeToken';
+import { useUser } from '../contexts/UserContext';
+import { JwtPayload } from 'jwt-decode';
 interface DashboardItemProps {
   title: string;
   description: string;
@@ -74,7 +78,31 @@ const DashboardItem: React.FC<DashboardItemProps> = ({
 };
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const {loading, loggedInUser, getUser} = useUser();
+
+
+//retrieving user information and serving it to the dashboard
+
+
+//get user information with the userId
+useEffect (() => {
+  //The fetching will be done when the loggedInUser is null
+if(!loggedInUser){
+  const token = getToken('token');
+const {userId} = decodeToken(token)
+getUser(userId)
+}
+
+},[])
+
+
+
+
+const role = loggedInUser&&loggedInUser.Role.roleName
+const fullName =  loggedInUser&&loggedInUser.fullName;
+
+
+
   const navigate = useNavigate();
 
   const dashboardItems = [
@@ -84,7 +112,7 @@ const Dashboard: React.FC = () => {
       icon: Users,
       color: '#4CAF50',
       onClick: () => navigate('/users'),
-      roles: ['Administrator'],
+      roles: ['ADMINISTRATOR'],
     },
     {
       title: 'DICOM Vault',
@@ -92,7 +120,7 @@ const Dashboard: React.FC = () => {
       icon: Film,
       color: '#2196F3',
       onClick: () => navigate('/dicom-viewer'),
-      roles: ['Administrator', 'Radiologist', 'Physician', 'Non-Specialist'],
+      roles: ['ADMINISTRATOR', 'RADIOLOGIST', 'PHYSICIAN', 'NON-SPECIALIST'],
     },
     {
       title: 'Radiologist Workspace',
@@ -101,7 +129,7 @@ const Dashboard: React.FC = () => {
       icon: Stethoscope,
       color: '#9C27B0',
       onClick: () => navigate('/radiologist-corner'),
-      roles: ['Radiologist'],
+      roles: ['RADIOLOGIST'],
     },
     {
       title: 'AI Assist',
@@ -109,23 +137,38 @@ const Dashboard: React.FC = () => {
         'Leverage AI for automated image interpretation and analysis.',
       icon: Brain,
       color: '#FF9800',
-      onClick: () => navigate('/ai-assist'),
-      roles: ['Administrator', 'Physician', 'Non-Specialist'],
+      onClick: () => navigate('/ai-interpretation'),
+      roles: ['ADMINISTRATOR', 'PHYSICIAN', 'NON-SPECIALIST'],
     },
   ];
 
   const filteredItems = dashboardItems.filter((item) =>
-    item.roles.includes(user?.role || '')
+    item.roles.includes(role || '')
   );
 
   return (
     <Box sx={{ bgcolor: 'background.default', py: 4 }}>
-      <Container maxWidth="lg">
+     {loading ?    <Box
+  sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh', // Full viewport height for vertical centering
+    bgcolor: 'background.default',
+  }}
+>
+  <HashLoader
+    color={"#005A9C"} // Use MUI theme color
+    loading={true}
+    size={50}
+    speedMultiplier={1}
+  />
+</Box> : <Container maxWidth="lg">
         <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
-          Welcome, {user?.email}
+          Welcome, {fullName}
         </Typography>
         <Typography variant="subtitle1" gutterBottom color="text.secondary">
-          {user?.role} Dashboard
+          {role} Dashboard
         </Typography>
         <Grid container spacing={3} mt={2}>
           {filteredItems.map((item, index) => (
@@ -140,7 +183,7 @@ const Dashboard: React.FC = () => {
             </Grid>
           ))}
         </Grid>
-      </Container>
+      </Container>}
     </Box>
   );
 };

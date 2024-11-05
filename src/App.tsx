@@ -11,6 +11,7 @@ import theme from './styles/theme';
 import { AuthProvider } from './contexts/AuthContext';
 import NavBar from './components/NavBar';
 import Home from './pages/Home';
+import { Toaster } from "react-hot-toast";
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ActivateAccount from './pages/ActivateAccount';
@@ -23,12 +24,15 @@ import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 import { CornerstoneProvider } from './contexts/CornerstoneContext';
 import AIAssist from './pages/AIAssist';
+import { UserProvider } from './contexts/UserContext';
+
 
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
+<!--       <AuthProvider> -->
+          <UserProvider>
         <CornerstoneProvider>
           <Router>
             <Box
@@ -94,7 +98,13 @@ const App: React.FC = () => {
             </Box>
           </Router>
         </CornerstoneProvider>
-      </AuthProvider>
+               <Toaster
+      position="top-right"
+      reverseOrder={false} />
+       </UserProvider>
+
+//       </AuthProvider>
+      
     </ThemeProvider>
   );
 };
