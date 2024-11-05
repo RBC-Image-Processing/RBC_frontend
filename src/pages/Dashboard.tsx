@@ -16,10 +16,6 @@ import {
   Film,
   Stethoscope,
   Brain,
-  BarChart2,
-  Upload,
-  Search,
-  FileText,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {getToken} from "../api/token"
