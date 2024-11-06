@@ -83,8 +83,8 @@ const ActivateAccount: React.FC = () => {
   const handleModalClose = async() => {
 
     setIsModalOpen(false);
-    // Simulate logging in with the new password
-    if (await login('user@example.com', 'password')) {
+    //TODO  Simulate logging in with the new password
+     if (token)  {
       navigate('/dashboard');
     }
   };

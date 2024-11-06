@@ -24,6 +24,8 @@ export const DICOMTable: React.FC<DICOMTableProps> = ({
   studies,
   onStudySelect,
 }) => {
+
+  console.log(studies,"the studies are selected");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -42,7 +44,7 @@ export const DICOMTable: React.FC<DICOMTableProps> = ({
         </TableHead>
         <TableBody>
           {studies.map((study) => (
-            <TableRow key={study.id}>
+            <TableRow key={study.studyId}>
               <TableCell>{study.patientId}</TableCell>
               {!isMobile && <TableCell>{study.studyDate}</TableCell>}
               <TableCell>{study.description}</TableCell>
