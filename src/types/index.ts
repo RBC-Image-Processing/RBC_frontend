@@ -90,9 +90,10 @@ export interface Instance {
 export interface Study {
   // id: string;
   patientId: string;
+  patientName:string;
   studyId: string;
   studyDate:string;
   description: string;
-  modality: 'XR' | 'MR';
+  modality: 'XR' | 'MR' | "CR";
   instances: Instance[];
 }

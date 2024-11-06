@@ -33,11 +33,13 @@ import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
 import { Study } from '../types/index';
 import { useAuth } from '../contexts/AuthContext';
+import { useCornerstoneContext } from '../contexts/CornerstoneContext';
+import ConfidenceProgressBar from '../components/ProgressBar';
 
 interface AIInterpretation {
   id: string;
   studyId: string;
-  text: string;
+  interpretation: string;
   confidence: number;
   timestamp: string;
   rating?: number;
@@ -60,6 +62,13 @@ interface RadiologistInterpretation {
   priority?: 'routine' | 'urgent' | 'stat';
 }
 
+interface DicomImage {
+  blob: Blob;
+  objectUrl: string;
+  arrayBuffer: ArrayBuffer;
+  cornerstoneImage?: any;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -80,6 +89,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 );
 
 export const AIAssist: React.FC = () => {
+   const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAuth();
@@ -100,6 +110,7 @@ export const AIAssist: React.FC = () => {
 
   const canRate = user?.role === 'PHYSICIAN';
 
+
   // Reset states when study changes
   useEffect(() => {
     setCurrentInstance(0);
@@ -109,331 +120,15 @@ export const AIAssist: React.FC = () => {
     setComment('');
 
     if (selectedStudy) {
-      fetchRadiologistInterpretation(selectedStudy.id);
+      fetchRadiologistInterpretation(selectedStudy.studyId);
     }
-  }, [selectedStudy?.id]);
+  }, [selectedStudy?.studyId]);
 
-  // useEffect(() => {
-  //   const fetchStudies = async () => {
-  //     try {
-  //       // This would be replaced with an actual API call
+ 
 
-  //       setStudies([
-  //         {
-  //           id: 'STU001',
-  //           patientId: 'PAT12345',
-  //           studyDate: '2024-03-22',
-  //           description: 'Chest X-Ray - PA and Lateral',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG001-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG001-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU002',
-  //           patientId: 'PAT67890',
-  //           studyDate: '2024-03-22',
-  //           description: 'Brain MRI with Contrast',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG002-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG002-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG002-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU003',
-  //           patientId: 'PAT24680',
-  //           studyDate: '2024-03-21',
-  //           description: 'Cervical Spine X-Ray',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG003-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG003-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG003-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU004',
-  //           patientId: 'PAT13579',
-  //           studyDate: '2024-03-21',
-  //           description: 'Lumbar Spine MRI',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG004-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG004-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG004-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU005',
-  //           patientId: 'PAT11111',
-  //           studyDate: '2024-03-20',
-  //           description: 'Abdominal X-Ray',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG005-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG005-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU006',
-  //           patientId: 'PAT22222',
-  //           studyDate: '2024-03-20',
-  //           description: 'Knee MRI Right',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG006-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-3',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-4',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU007',
-  //           patientId: 'PAT33333',
-  //           studyDate: '2024-03-19',
-  //           description: 'Chest X-Ray - Portable',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG007-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU008',
-  //           patientId: 'PAT44444',
-  //           studyDate: '2024-03-19',
-  //           description: 'Shoulder MRI Left',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU009',
-  //           patientId: 'PAT55555',
-  //           studyDate: '2024-03-18',
-  //           description: 'Wrist X-Ray Right',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG009-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG009-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG009-3',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU010',
-  //           patientId: 'PAT66666',
-  //           studyDate: '2024-03-18',
-  //           description: 'Cervical Spine MRI',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG010-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG010-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG010-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //       ]);
-        
-  //     } catch (error) {
-  //       console.error('Error fetching studies:', error);
-  //     }
-  //   };
 
-  //   fetchStudies();
-  // }, []);
+
+
 
 
   useEffect(() => {
@@ -494,27 +189,74 @@ export const AIAssist: React.FC = () => {
     }
   };
 
-  const handleRequestAI = async () => {
-    if (!selectedStudy) return;
-    setIsProcessing(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      const mockAIResult: AIInterpretation = {
-        id: Date.now().toString(),
-        studyId: selectedStudy.id,
-        text: 'Analysis indicates presence of consolidation in the right lower lobe with approximately 89% confidence. Potential indicators of bacterial pneumonia. No significant cardiomegaly observed. Recommendation: Clinical correlation advised.',
-        confidence: 0.89,
-        timestamp: new Date().toISOString(),
-        comments: [],
-      };
-      setAiInterpretation(mockAIResult);
-    } catch (error) {
-      console.error('Error requesting AI interpretation:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+
+
+const handleRequestAI = async () => {
+  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+  setIsProcessing(true);
+
+  try {
+    // Create FormData to include the file
+    const formData = new FormData();
+     formData.append("file", dicomImage.blob, "image.dcm");// `fileToUpload` should be the File object you want to send
+
+    // Make the API call
+    const response = await axios.post(
+      "http://172.29.98.121:8000/predict_with_interpretation",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Set the content type
+        },
+      }
+    );
+
+    
+    // Extract AI interpretation from the response
+    const { id, studyId, interpretation, confidence, timestamp } = response.data;
+    
+    console.log(interpretation, "the ai response")
+    // Construct the AIInterpretation object
+    const aiResult: AIInterpretation = {
+      id: id || Date.now().toString(),
+      studyId: studyId || selectedStudy.studyId,
+      interpretation: interpretation || "No interpretation available.",
+      confidence: confidence || 0,
+      timestamp: timestamp || new Date().toISOString(),
+      comments: [],
+    };
+
+    // Set the AI interpretation
+    setAiInterpretation(aiResult);
+  } catch (error) {
+    console.error("Error requesting AI interpretation:", error);
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
+
+  // const handleRequestAI = async () => {
+  //   if (!selectedStudy) return;
+  //   setIsProcessing(true);
+  //   try {
+  //     // Simulate API call
+  //     await new Promise((resolve) => setTimeout(resolve, 2000));
+  //     const mockAIResult: AIInterpretation = {
+  //       id: Date.now().toString(),
+  //       studyId: selectedStudy.id,
+  //       text: 'Analysis indicates presence of consolidation in the right lower lobe with approximately 89% confidence. Potential indicators of bacterial pneumonia. No significant cardiomegaly observed. Recommendation: Clinical correlation advised.',
+  //       confidence: 0.89,
+  //       timestamp: new Date().toISOString(),
+  //       comments: [],
+  //     };
+  //     setAiInterpretation(mockAIResult);
+  //   } catch (error) {
+  //     console.error('Error requesting AI interpretation:', error);
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
 
   const handleSubmitFeedback = async () => {
     if (!rating || !comment || !aiInterpretation || !user) return;
@@ -733,7 +475,8 @@ export const AIAssist: React.FC = () => {
                 ) : aiInterpretation ? (
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
+                       <ConfidenceProgressBar confidenceScore={aiInterpretation.confidence} />
+                      {/* <Chip
                         label={`${(aiInterpretation.confidence * 100).toFixed(0)}% Confidence`}
                         color="primary"
                         size="small"
@@ -744,13 +487,14 @@ export const AIAssist: React.FC = () => {
                           color="secondary"
                           size="small"
                         />
-                      )}
+                      )} */}
                     </Stack>
+                   
                     <Paper
                       variant="outlined"
                       sx={{ p: 2, bgcolor: 'background.default' }}
                     >
-                      <Typography>{aiInterpretation.text}</Typography>
+                      <Typography>{aiInterpretation.interpretation}</Typography>
                     </Paper>
                     {aiInterpretation.comments &&
                       aiInterpretation.comments.length > 0 && (

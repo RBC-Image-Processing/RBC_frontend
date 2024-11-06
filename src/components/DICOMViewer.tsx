@@ -114,15 +114,9 @@ try {
     }
   );
 
-  // const blob = new Blob([response.data], {type: "image/jpeg"});
-
-  // const imageURL = URL.createObjectURL(blob);
-
-  // console.log(image
 
 
 
-  console.log(response, "the response before"); // Log response
 
   const arrayBuffer = response.data;
 
