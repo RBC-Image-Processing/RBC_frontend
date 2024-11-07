@@ -149,6 +149,7 @@ export const UploadInterface: React.FC = () => {
           message: response.data.message || 'Upload completed with warnings',
           severity: 'success', // You can also use 'warning' for amber color
         });
+        resetUpload();
       }
     } catch (error) {
       console.error('Upload error:', error);
