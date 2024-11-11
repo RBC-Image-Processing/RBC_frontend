@@ -545,7 +545,7 @@ const handleRequestAI = async () => {
                       )}
                   </Stack>
                 ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
+       <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Button
                       variant="contained"
                       startIcon={<Brain />}
