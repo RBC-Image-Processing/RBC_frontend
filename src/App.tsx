@@ -31,7 +31,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-<!--       <AuthProvider> -->
+      <AuthProvider> 
           <UserProvider>
         <CornerstoneProvider>
           <Router>
@@ -103,7 +103,7 @@ const App: React.FC = () => {
       reverseOrder={false} />
        </UserProvider>
 
-//       </AuthProvider>
+       </AuthProvider>
       
     </ThemeProvider>
   );

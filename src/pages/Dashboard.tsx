@@ -137,7 +137,7 @@ const fullName =  loggedInUser&&loggedInUser.fullName;
         'Leverage AI for automated image interpretation and analysis.',
       icon: Brain,
       color: '#FF9800',
-      onClick: () => navigate('/ai-interpretation'),
+      onClick: () => navigate('/ai-assist'),
       roles: ['ADMINISTRATOR', 'PHYSICIAN', 'NON-SPECIALIST'],
     },
   ];

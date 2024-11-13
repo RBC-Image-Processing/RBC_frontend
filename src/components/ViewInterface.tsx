@@ -17,8 +17,8 @@ export const ViewInterface: React.FC = () => {
     patientId: '',
     dateRange: '',
   });
-  const [allStudies, setAllStudies] = useState<Study[]>([]);
-  const [filteredStudies, setFilteredStudies] = useState<Study[]>([]);
+  const [allStudies, setAllStudies] = useState<any[]>([]);
+  const [filteredStudies, setFilteredStudies] = useState<any[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -73,13 +73,17 @@ export const ViewInterface: React.FC = () => {
       setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<Study[]>('http://localhost:8000/api/study');
+        const response = await axios.get<any>('http://localhost:8000/api/study');
 
         console.log(response, "the response")
         
         // Update the state with the fetched studies
-        setAllStudies(response.data);
-        setFilteredStudies(response.data);
+
+        const filteredValue = response.data.data.filter((item)=> {return item !== null});
+
+        console.log(filteredValue, "the filtered value");
+        setAllStudies(filteredValue);
+        setFilteredStudies(filteredValue);
       } catch (error) {
         console.error('Error fetching studies:', error);
       } finally {

@@ -77,24 +77,50 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
 
   //   loadAndRenderImage();
   // }, [study, currentInstanceIndex]);
-
 useEffect(() => {
   const loadAndRenderImage = async () => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
 
-      try {
-        // Get the current instance object
-        const instance = study.instances[currentInstanceIndex];
+        // Set canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        // Make an API call to fetch the DICOM image buffer
-        const response = await axios.get(
-          `/instances/${instance.id}/file`, // Adjust the URL as needed
-          { responseType: "arraybuffer" } // Ensure binary data handling
-        );
-        const arrayBuffer = response.data; // Access the binary data
+try {
+  // Get the current instance object
+  const instance = study.instances[currentInstanceIndex];
 
-        // Parse the DICOM image using dicom.ts
+  console.log("Current instance:", instance); // Log instance
+
+  if (!instance) {
+    throw new Error("Instance is undefined or invalid");
+  }
+
+  const username = "bright";
+  const password = "bright";
+  const authString = btoa(`${username}:${password}`); // Base64 encode
+
+  console.log("Auth String:", authString); // Log the auth string
+
+  // Make an API call to fetch the DICOM image buffer
+  const response = await axios.get(
+    `http://localhost:8000/api/image/${instance}`,
+    {
+      responseType: "arraybuffer",
+      headers: {
+        Accept: "application/dicom",
+        Authorization: `Basic ${authString}`,
+      },
+    }
+  );
+
+
+
+
+
+  const arrayBuffer = response.data;
+
+  // Parse the DICOM image using dicom.ts
         const image = dicomts.parseImage(arrayBuffer);
 
         if (image) {
@@ -116,22 +142,15 @@ useEffect(() => {
         } else {
           throw new Error("Failed to parse DICOM image");
         }
-      } catch (error) {
-        // Handle errors in fetching or rendering
-        console.error("Error loading DICOM image:", error);
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.font = "20px Arial";
-          ctx.fillStyle = "red";
-          ctx.fillText("Error loading image", 10, 50);
-        }
-      }
+} catch (error) {
+  console.error("Error loading DICOM image:", error);
+}
+
     }
   };
 
-  // Call the function to load and render the image
   loadAndRenderImage();
-}, [study, currentInstanceIndex]);
+}, [currentInstanceIndex, study.instances]); // Dependencies to re-run the effect
 
 
   const handlePrevious = () => {
