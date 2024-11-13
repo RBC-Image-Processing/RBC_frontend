@@ -12,9 +12,10 @@ export interface User {
 }
 
 export interface LoggedUser {
+  userId:string,
 		email: string
 		fullName: string
-		roleName: string
+		roleId: number
 
 }
 
@@ -41,6 +42,17 @@ export interface UserList {
   isActive: boolean;
 }
 
+
+export interface Feedback {
+  doctor_comment_id: string;
+  ai_interpretation_id:number;
+  userId: string;
+  fullName: string;
+  email: string;
+  comment: string;
+  rating:number;
+  createdAt: string;
+}
 
 
 export interface Err {
@@ -79,6 +91,18 @@ export interface UserContextType {
   sendActivateAccountRequest: (email: string) => Promise<boolean>;
   activateAccount: (newPassword: string, token:string|null) => Promise<boolean>;
   loggedInUser: LoggedUser | null;
+}
+
+
+export interface FeedBackContextType{
+  feedbacks:Feedback[] | null;
+  getFeedback:(doctor_comment_id: string)=>Promise<boolean>;
+  postFeedback:(data:object)=>Promise<boolean>;
+  putFeedback:(doctor_comment_id:string, data:object)=>Promise<boolean>;
+  deleteFeedback:(doctor_comment_id:string)=>Promise<boolean>;
+  loading: boolean | null;
+  message:string;
+  errors:Err;
 }
 
 
