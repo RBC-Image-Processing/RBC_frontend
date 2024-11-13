@@ -12,6 +12,7 @@ export interface User {
 }
 
 export interface LoggedUser {
+  userId:string,
 		email: string
 		fullName: string
 		roleName: string

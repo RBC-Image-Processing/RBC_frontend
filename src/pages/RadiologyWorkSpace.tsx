@@ -18,6 +18,7 @@ import { Interpretation } from '../types/radiologist';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import { Menu } from 'lucide-react';
 import axios from "axios"
+import { useUser } from '../contexts/UserContext';
 
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
@@ -28,9 +29,10 @@ export const RadiologyWorkspace: React.FC = () => {
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [currentInstance, setCurrentInstance] = useState(0);
   const [studyListOpen, setStudyListOpen] = useState(false);
+   const { loggedInUser} = useUser();
   const [interpretation, setInterpretation] = useState<Interpretation>({
-    text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
-    radiologistId: 'RD00023',
+    text: '',
+    radiologistId: `RD ${loggedInUser&&loggedInUser.userId}`,
     createdAt: new Date().toISOString(),
   });
   useEffect(() => {
@@ -67,6 +69,8 @@ export const RadiologyWorkspace: React.FC = () => {
     }
     setCurrentInstance(0);
   };
+
+   
 
   return (
     <Box
@@ -193,8 +197,10 @@ export const RadiologyWorkspace: React.FC = () => {
           >
             <InterpretationForm
               interpretation={interpretation}
-              currentRadiologistId="RD00023"
-              onSubmit={() => {}}
+              currentRadiologistId={`RD${loggedInUser&&loggedInUser.userId}`}
+              onSubmit={() => {
+              //TODO , here call the api to submit the form
+              }}
             />
           </Grid>
         </Grid>
