@@ -19,6 +19,8 @@ import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import { Menu } from 'lucide-react';
 import axios from "axios"
 import { useUser } from '../contexts/UserContext';
+import { getToken } from '../api/token';
+import { decodeToken } from '../util/decodeToken';
 
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
@@ -28,13 +30,38 @@ export const RadiologyWorkspace: React.FC = () => {
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [currentInstance, setCurrentInstance] = useState(0);
-  const [studyListOpen, setStudyListOpen] = useState(false);
-   const { loggedInUser} = useUser();
-  const [interpretation, setInterpretation] = useState<Interpretation>({
-    text: 'Enter the interpretation here ..... ',
-    radiologistId: `RD ${loggedInUser&&loggedInUser.userId}`,
-    createdAt: new Date().toISOString(),
-  });
+  const [studyListOpen, setStudyListOpen] = useState(false)
+  const {loading, loggedInUser, getUser} = useUser();
+
+//get user information with the userId
+useEffect(() => {
+  const fetchUser = async () => {
+    //The fetching will be done when the loggedInUser is null
+    if (!loggedInUser) {
+      const token = getToken('token');
+      const { userId } = decodeToken(token);
+      await getUser(userId);
+    }
+  };
+
+  fetchUser();
+}, []);
+
+console.log(loggedInUser,"tje user form workshapce")
+
+useEffect(() => {
+  if (loggedInUser) {
+    setInterpretation({
+      text: 'Enter the interpretation here ..... ',
+      radiologistId: `RD ${loggedInUser.userId}`,
+      roleId: loggedInUser.roleId,
+      createdAt: new Date().toISOString(),
+    });
+  }
+}, [loggedInUser]);
+
+   
+  const [interpretation, setInterpretation] = useState<Interpretation>();
   useEffect(() => {
     const fetchStudies = async () => {
       // setIsLoading(true);ft_api_auth_intergration
@@ -197,7 +224,7 @@ export const RadiologyWorkspace: React.FC = () => {
           >
             <InterpretationForm
               interpretation={interpretation}
-              currentRadiologistId={`RD${loggedInUser&&loggedInUser.userId}`}
+              currentRadiologistId={loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'}
               onSubmit={() => {
               //TODO , here call the api to submit the form
               }}

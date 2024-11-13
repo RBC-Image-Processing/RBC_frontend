@@ -1,6 +1,7 @@
 export interface Interpretation {
   text: string;
   radiologistId: string;
+  roleId:number;
   createdAt: string;
 }
 

@@ -85,15 +85,18 @@ const Dashboard: React.FC = () => {
 
 
 //get user information with the userId
-useEffect (() => {
-  //The fetching will be done when the loggedInUser is null
-if(!loggedInUser){
-  const token = getToken('token');
-const {userId} = decodeToken(token)
-getUser(userId)
-}
+useEffect(() => {
+  const fetchUser = async () => {
+    //The fetching will be done when the loggedInUser is null
+    if (!loggedInUser) {
+      const token = getToken('token');
+      const { userId } = decodeToken(token);
+      await getUser(userId);
+    }
+  };
 
-},[])
+  fetchUser();
+}, []);
 
 
 

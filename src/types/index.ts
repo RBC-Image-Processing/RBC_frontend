@@ -15,7 +15,7 @@ export interface LoggedUser {
   userId:string,
 		email: string
 		fullName: string
-		roleName: string
+		roleId: number
 
 }
 

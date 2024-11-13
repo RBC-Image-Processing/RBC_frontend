@@ -36,7 +36,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
 }) => {
   const [text, setText] = React.useState(interpretation?.text || '');
   const canEdit =
-    !interpretation || interpretation.radiologistId === currentRadiologistId;
+    !interpretation || interpretation.roleId === 3;
   const theme = useTheme();
 
   return (
