@@ -31,13 +31,13 @@ export const RadiologyWorkspace: React.FC = () => {
   const [studyListOpen, setStudyListOpen] = useState(false);
    const { loggedInUser} = useUser();
   const [interpretation, setInterpretation] = useState<Interpretation>({
-    text: '',
+    text: 'Enter the interpretation here ..... ',
     radiologistId: `RD ${loggedInUser&&loggedInUser.userId}`,
     createdAt: new Date().toISOString(),
   });
   useEffect(() => {
     const fetchStudies = async () => {
-      // setIsLoading(true);
+      // setIsLoading(true);ft_api_auth_intergration
       try {
         // Make the API call to fetch studies
         const response = await axios.get<any>('http://localhost:8000/api/study');
