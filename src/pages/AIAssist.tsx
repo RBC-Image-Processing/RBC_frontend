@@ -35,6 +35,9 @@ import { Study } from '../types/index';
 import { useAuth } from '../contexts/AuthContext';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import ConfidenceProgressBar from '../components/ProgressBar';
+import { getToken } from '../api/token';
+import { decodeToken } from '../util/decodeToken';
+import { useUser } from '../contexts/UserContext';
 
 interface AIInterpretation {
   id: string;
@@ -92,7 +95,21 @@ export const AIAssist: React.FC = () => {
    const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { user } = useAuth();
+   const {loading, loggedInUser, getUser} = useUser();
+
+//get user information with the userId
+useEffect(() => {
+  const fetchUser = async () => {
+    //The fetching will be done when the loggedInUser is null
+    if (!loggedInUser) {
+      const token = getToken('token');
+      const { userId } = decodeToken(token);
+      await getUser(userId);
+    }
+  };
+
+  fetchUser();
+}, []);
 
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
@@ -108,7 +125,7 @@ export const AIAssist: React.FC = () => {
   const [comment, setComment] = useState('');
   const [isLoadingRadiologist, setIsLoadingRadiologist] = useState(false);
 
-  const canRate = user?.role === 'PHYSICIAN';
+  const canRate = loggedInUser?.roleId === 2;
 
 
   // Reset states when study changes

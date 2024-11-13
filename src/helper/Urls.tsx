@@ -23,3 +23,21 @@ export const UPDATE_USER = "/api/user/"
 export const SEND_ACTIVATION_EMAIL = "/api/user/activate-account-request"
 
 export const ACTIVATE_ACCOUNT = "/api/user/activate-account"
+
+
+//Radiologist interpretations 
+
+export const DELETE_INTERPRETATION = "/api/interpretation"
+
+export const GET_INTERPRETATION = "/api/interpretation/study"
+
+export const POST_INTERPRETATION = "/api/interpretation"
+
+export const PUT_INTERPRETATION = "/api/interpretation"
+
+
+//Doctor comments management 
+
+// export const GET_FEEDBACK = ""
+
+

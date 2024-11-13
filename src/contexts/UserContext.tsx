@@ -103,7 +103,6 @@ const getUser = async (userId:string): Promise<boolean> => {
     const res = await AXIOS_GET(`${GET_USERS}${userId}`);
 
     if (res.data.status === 200) {
-      console.log(res.data.data, "the api")
       setLoggedInUser(res.data.data);
       setLoading(false);
       // toast.success(res.data.message);   

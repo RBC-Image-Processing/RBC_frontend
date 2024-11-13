@@ -47,7 +47,7 @@ useEffect(() => {
   fetchUser();
 }, []);
 
-console.log(loggedInUser,"tje user form workshapce")
+
 
 useEffect(() => {
   if (loggedInUser) {
@@ -75,7 +75,6 @@ useEffect(() => {
 
         const filteredValue = response.data.data.filter((item)=> {return item !== null});
 
-        console.log(filteredValue, "the filtered value");
         setStudies(filteredValue);
       
       } catch (error) {

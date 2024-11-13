@@ -43,6 +43,17 @@ export interface UserList {
 }
 
 
+export interface Feedback {
+  doctor_comment_id: string;
+  ai_interpretation_id:number;
+  userId: string;
+  fullName: string;
+  email: string;
+  comment: string;
+  rating:number;
+  createdAt: string;
+}
+
 
 export interface Err {
   email: string;
@@ -80,6 +91,18 @@ export interface UserContextType {
   sendActivateAccountRequest: (email: string) => Promise<boolean>;
   activateAccount: (newPassword: string, token:string|null) => Promise<boolean>;
   loggedInUser: LoggedUser | null;
+}
+
+
+export interface FeedBackContextType{
+  feedbacks:Feedback[] | null;
+  getFeedback:(doctor_comment_id: string)=>Promise<boolean>;
+  postFeedback:(data:object)=>Promise<boolean>;
+  putFeedback:(doctor_comment_id:string, data:object)=>Promise<boolean>;
+  deleteFeedback:(doctor_comment_id:string)=>Promise<boolean>;
+  loading: boolean | null;
+  message:string;
+  errors:Err;
 }
 
 
