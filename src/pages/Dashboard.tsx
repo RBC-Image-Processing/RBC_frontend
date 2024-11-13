@@ -79,7 +79,7 @@ const DashboardItem: React.FC<DashboardItemProps> = ({
 
 const Dashboard: React.FC = () => {
   const {loading, loggedInUser, getUser} = useUser();
-
+  const token = getToken('token');
 
 //retrieving user information and serving it to the dashboard
 
@@ -88,15 +88,13 @@ const Dashboard: React.FC = () => {
 useEffect(() => {
   const fetchUser = async () => {
     //The fetching will be done when the loggedInUser is null
-    if (!loggedInUser) {
-      const token = getToken('token');
       const { userId } = decodeToken(token);
       await getUser(userId);
-    }
+    
   };
 
   fetchUser();
-}, []);
+}, [token]);
 
 
 
@@ -162,7 +160,7 @@ const fullName =  loggedInUser&&loggedInUser.fullName;
 >
   <HashLoader
     color={"#005A9C"} // Use MUI theme color
-    loading={true}
+    loading={loading}
     size={50}
     speedMultiplier={1}
   />

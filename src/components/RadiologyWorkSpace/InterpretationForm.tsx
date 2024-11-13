@@ -31,7 +31,6 @@ interface InterpretationFormProps {
 
 export const InterpretationForm: React.FC<InterpretationFormProps> = ({
   interpretation,
-  currentRadiologistId,
   onSubmit,
 }) => {
   const [text, setText] = React.useState(interpretation?.text || '');
@@ -144,7 +143,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
             fullWidth
             value={text}
             onChange={(e) => setText(e.target.value)}
-            disabled={!canEdit}
+            disabled={!canEdit }
             placeholder={canEdit ? 'Enter your interpretation here...' : ''}
             variant="outlined"
             sx={{
@@ -187,6 +186,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
             variant="contained"
             startIcon={<Send size={18} />}
             onClick={() => onSubmit(text)}
+            disabled={text.trim().length === 0}
             fullWidth
             sx={{
               py: 1.5,

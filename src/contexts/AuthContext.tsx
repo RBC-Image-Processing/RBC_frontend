@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
 
   const login =  async(email: string, password: string): Promise<boolean> => {
-
+    console.log(email, password, "the mail and pass");
 
       if(!validate(email,password)){
         return false;
@@ -137,7 +137,10 @@ const resetPassword = async (newPassword: string, token:string): Promise<boolean
   return false;
 
 }
-  const logout = () => deleteToken('token');
+  const logout = ()=> {
+    console.log("called")
+    deleteToken('token')
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout , loading, sendResetPasswordRequest, resetPassword, message,errors}}>
