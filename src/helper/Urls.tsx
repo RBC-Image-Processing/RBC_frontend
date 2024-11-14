@@ -41,3 +41,4 @@ export const PUT_INTERPRETATION = "/api/interpretation"
 // export const GET_FEEDBACK = ""
 
 
+export const INTEPRETATION = "/api/interpretation/"

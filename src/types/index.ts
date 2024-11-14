@@ -108,11 +108,11 @@ export interface FeedBackContextType{
 
 export interface Instance {
   id: string;
-  // imagePath: string;
+  imagePath: string;
 }
 
 export interface Study {
-  // id: string;
+  id: string;
   patientId: string;
   patientName:string;
   studyId: string;
