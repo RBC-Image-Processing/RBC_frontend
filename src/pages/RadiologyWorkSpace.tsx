@@ -23,7 +23,7 @@ import { getToken } from '../api/token';
 import { decodeToken } from '../util/decodeToken';
 import {useInterpretation } from '../contexts/InterpretationContext';
 // import { dummyStudies } from '../helper/dummyStuDIES';
-
+//Problem
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));

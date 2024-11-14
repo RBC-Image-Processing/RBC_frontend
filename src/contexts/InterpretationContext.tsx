@@ -30,7 +30,7 @@ const defaultContextValue: InterpretationContextType = {
   updateInterpretation: () => {},
   deleteInterpretation: () => {},
 };
-
+//ss
 // Create context
 const InterpretationContext = createContext<InterpretationContextType>(defaultContextValue);
 

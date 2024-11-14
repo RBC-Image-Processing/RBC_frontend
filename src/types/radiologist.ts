@@ -20,6 +20,7 @@
 //   text?: string;
 // }
 
+//rad
 
 export interface Interpretation {
   interpretationId: string | undefined;
