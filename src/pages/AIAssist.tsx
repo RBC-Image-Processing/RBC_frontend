@@ -47,9 +47,9 @@ interface AIInterpretation {
   timestamp: string;
   rating?: number;
   comments?: {
-    userId: string;
-    userRole: string;
-    text: string;
+    userId: string | undefined;
+    studyId:string | undefined;
+    comment: string;
     timestamp: string;
   }[];
 }
@@ -276,15 +276,15 @@ const handleRequestAI = async () => {
   // };
 
   const handleSubmitFeedback = async () => {
-    if (!rating || !comment || !aiInterpretation || !user) return;
+    if (!rating || !comment || !aiInterpretation || !loggedInUser) return;
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const newComment = {
-        userId: user.email,
-        userRole: user.role,
-        text: comment,
+        userId: loggedInUser?.userId,
+        studyId:selectedStudy?.studyId,
+        comment: comment,
         timestamp: new Date().toISOString(),
       };
 

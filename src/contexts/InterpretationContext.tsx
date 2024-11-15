@@ -11,7 +11,7 @@ interface Interpretation {
 }
 
 interface InterpretationContextType {
-  interpretations: Interpretation[];
+  retInterpretations: Interpretation[];
   isLoading: boolean;
   error: string | null;
   createInterpretation: (studyId: string | undefined, userId: string | undefined, diagnosis: string) => void;
@@ -22,7 +22,7 @@ interface InterpretationContextType {
 
 // Default context value
 const defaultContextValue: InterpretationContextType = {
-  interpretations: [],
+  retInterpretations: [],
   isLoading: false,
   error: null,
   createInterpretation: () => {},
@@ -36,24 +36,27 @@ const InterpretationContext = createContext<InterpretationContextType>(defaultCo
 
 // Create the provider component
 export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [interpretations, setInterpretations] = useState<Interpretation[]>([]);
+  const [retInterpretations, setRetInterpretations] = useState<Interpretation[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch interpretations by study ID
-  const getInterpretationByStudyId = async (studyId: string | undefined) => {
+const getInterpretationByStudyId = async (studyId: string): Promise<Interpretation[]> => {
+
     setIsLoading(true);
     try {
       const response = await AXIOS_GET(`/api/interpretation/study/${studyId}`);
-      setInterpretations(response.data.data); // Assuming your response has a data field with interpretations
+      setRetInterpretations(response.data.data); // Assuming your response has a data field with interpretations
      console.log("Retrieved interpretations", response.data.data);
       setError(null);
+      return response.data.data;
     } catch (err) {
       setError("Error fetching interpretations");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+    return [];
   };
 
   // Create a new interpretation
@@ -66,7 +69,7 @@ export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ chil
         diagnosis: diagnosis,
       });
       console.log(response.data.data);
-      setInterpretations((prev) => [...prev, response.data.data]); // Add the new interpretation to the state
+      setRetInterpretations((prev) => [...prev, response.data.data]); // Add the new interpretation to the state
       setError(null);
     } catch (err) {
       setError("Error creating interpretation");
@@ -83,7 +86,7 @@ export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ chil
       const response = await AXIOS_PUT(`/api/interpretation/${interpretationId}`, {
         diagnosis: diagnosis,
       });
-      setInterpretations((prev) =>
+      setRetInterpretations((prev) =>
         prev.map((interpretation) =>
           interpretation.interpretationId === interpretationId
             ? { ...interpretation, diagnosis: response.data.data.diagnosis }
@@ -104,7 +107,7 @@ export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ chil
     setIsLoading(true);
     try {
       await AXIOS_DELETE(`/api/interpretation/${interpretationId}`);
-      setInterpretations((prev) =>
+      setRetInterpretations((prev) =>
         prev.filter((interpretation) => interpretation.interpretationId !== interpretationId)
       );
       setError(null);
@@ -119,7 +122,7 @@ export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ chil
   return (
     <InterpretationContext.Provider
       value={{
-        interpretations,
+        retInterpretations,
         isLoading,
         error,
         createInterpretation,

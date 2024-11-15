@@ -26,7 +26,7 @@ export interface Interpretation {
   interpretationId: string | undefined;
   diagnosis: string;
   radiologistId: string;
-  roleId:number;
+  roleId:string;
   createdAt: string;
 }
 

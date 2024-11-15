@@ -44,7 +44,7 @@ export const RadiologyWorkspace: React.FC = () => {
 //     radiologistId: 'RD00023',
 //     createdAt: new Date().toISOString(),
 //   });
-  const { interpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
+  const { retInterpretations, createInterpretation,getInterpretationByStudyId} = useInterpretation();
 
 
 
@@ -64,41 +64,42 @@ useEffect(() => {
 
 
 
-// useEffect(() => {
-//   if (loggedInUser) {
-//     setInterpretation({
-//       interpretationId: undefined,
-//       text: ' ',
-//       radiologistId: `RD ${loggedInUser.userId}`,
-//       roleId: loggedInUser.roleId,
-//       createdAt: new Date().toISOString(),
-//     });
-//   }
-// }, [loggedInUser]);
+
 
 
 //dependency is if a study is selected 
 // make an api call to get an interpretation associated with the study 
 useEffect(() => {
+  console.log("called changed study", selectedStudy?.studyId);
+
   const fetchInterpretation = async () => {
     if (selectedStudy) {
-      await getInterpretationByStudyId(selectedStudy.studyId);
+      
+      const interpretations: Interpretation[] = await getInterpretationByStudyId(selectedStudy.studyId);
+
+      if (loggedInUser != null && interpretations?.length > 0) {
+        setInterpretation({
+          interpretationId: interpretations[0]?.interpretationId,
+          diagnosis: interpretations[0]?.diagnosis,
+          radiologistId: `RD ${loggedInUser.userId}`,
+          roleId: loggedInUser.roleId.toString(),
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        setInterpretation({
+          interpretationId: "",
+          diagnosis: " ",
+          radiologistId: "",
+          roleId: "",
+          createdAt: "",
+        });
+      }
     }
   };
 
   fetchInterpretation();
 
-  if (loggedInUser && interpretations.length > 0) {
-    setInterpretation({
-      interpretationId: interpretations[0]?.interpretationId,
-      diagnosis: interpretations[0]?.diagnosis,
-      radiologistId: `RD ${loggedInUser.userId}`,
-      roleId: loggedInUser.roleId,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-}, [selectedStudy,loggedInUser]);
+}, [selectedStudy, loggedInUser]);
 
 
 
@@ -272,13 +273,13 @@ useEffect(() => {
               currentRadiologistId={loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'}
               onSubmit={(text) => {
                 console.log(selectedStudy?.studyId, loggedInUser?.userId, "info to be used")
-                if (interpretations&&interpretation &&interpretations[0].userId===loggedInUser?.userId) {
-                  if (interpretations[0]?.interpretationId) {
-                    updateInterpretation(interpretations[0]?.interpretationId, text);
-                  }
-                } else {
+                // if (retInterpretations&&interpretation &&retInterpretations[0].userId===loggedInUser?.userId) {
+                //   if (retInterpretations[0]?.interpretationId) {
+                //     updateInterpretation(retInterpretations[0]?.interpretationId, text);
+                //   }
+                // } else {
                  createInterpretation(selectedStudy?.studyId, loggedInUser?.userId, text);
-                }
+                // }
 
               }
               }

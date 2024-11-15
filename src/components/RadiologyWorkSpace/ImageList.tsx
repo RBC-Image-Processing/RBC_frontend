@@ -8,7 +8,8 @@ import {
   Box,
   Typography,
   Divider,
-  Avatar
+  Avatar,
+  CircularProgress
 } from '@mui/material';
 import { Study } from '../../types/index';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices'; // Example icon
@@ -43,7 +44,16 @@ export const ImageList: React.FC<ImageListProps> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </Box>
-    <List sx={{ flexGrow: 1, overflow: 'auto' }}>
+ {filteredStudies.length==0?   <Box 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        minHeight: '200px' // Adjust this value based on your layout
+      }}
+    >
+      <CircularProgress />
+    </Box> : <List sx={{ flexGrow: 1, overflow: 'auto' }}>
       {filteredStudies &&
         filteredStudies.map((study) => (
           <React.Fragment key={study.studyId}>
@@ -87,7 +97,7 @@ export const ImageList: React.FC<ImageListProps> = ({
             <Divider />
           </React.Fragment>
         ))}
-    </List>
+    </List>}
     </Box>
   );
 };
