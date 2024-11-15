@@ -38,7 +38,16 @@ export const PUT_INTERPRETATION = "/api/interpretation"
 
 //Doctor comments management 
 
-// export const GET_FEEDBACK = ""
+export const GET_FEEDBACK_BY_STUDY = "/api/doctor-comments/study"
+
+export const POST_FEEDBACK = "/api/doctor-comments"
+
+export const PUT_FEEDBACK = "/api/doctor-comments"
+
+export const DELETE_FEEDBACK = "/api/doctor-comments"
+
+
+//AI INTERPRETATION 
 
 
 export const INTEPRETATION = "/api/interpretation/"

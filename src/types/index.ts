@@ -95,14 +95,14 @@ export interface UserContextType {
 
 
 export interface FeedBackContextType{
-  feedbacks:Feedback[] | null;
+  feedback:Feedback[] | null;
   getFeedback:(doctor_comment_id: string)=>Promise<boolean>;
   postFeedback:(data:object)=>Promise<boolean>;
   putFeedback:(doctor_comment_id:string, data:object)=>Promise<boolean>;
   deleteFeedback:(doctor_comment_id:string)=>Promise<boolean>;
-  loading: boolean | null;
+  isLoading: boolean | null;
   message:string;
-  errors:Err;
+  errors: Err | null;
 }
 
 
