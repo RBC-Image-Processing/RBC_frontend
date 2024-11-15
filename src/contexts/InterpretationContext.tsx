@@ -13,6 +13,7 @@ interface Interpretation {
 interface InterpretationContextType {
   retInterpretations: Interpretation[];
   isLoading: boolean;
+ isGetLoading:boolean;
   error: string | null;
   createInterpretation: (studyId: string | undefined, userId: string | undefined, diagnosis: string) => void;
   getInterpretationByStudyId: (studyId: string | undefined) => void;
@@ -24,6 +25,7 @@ interface InterpretationContextType {
 const defaultContextValue: InterpretationContextType = {
   retInterpretations: [],
   isLoading: false,
+ isGetLoading: false,
   error: null,
   createInterpretation: () => {},
   getInterpretationByStudyId: () => {},
@@ -38,12 +40,19 @@ const InterpretationContext = createContext<InterpretationContextType>(defaultCo
 export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [retInterpretations, setRetInterpretations] = useState<Interpretation[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isGetLoading, setIsGetLoading] = useState<boolean>(false);
+
+      
   const [error, setError] = useState<string | null>(null);
 
   // Fetch interpretations by study ID
-const getInterpretationByStudyId = async (studyId: string): Promise<Interpretation[]> => {
+const getInterpretationByStudyId = async (studyId: string | undefined): Promise<Interpretation[]> => {
+  if (!studyId) {
+    setError("Study ID is undefined");
+    return [];
+  }
 
-    setIsLoading(true);
+    setIsGetLoading(true);
     try {
       const response = await AXIOS_GET(`/api/interpretation/study/${studyId}`);
       setRetInterpretations(response.data.data); // Assuming your response has a data field with interpretations
@@ -54,7 +63,7 @@ const getInterpretationByStudyId = async (studyId: string): Promise<Interpretati
       setError("Error fetching interpretations");
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsGetLoading(false);
     }
     return [];
   };
@@ -69,8 +78,8 @@ const getInterpretationByStudyId = async (studyId: string): Promise<Interpretati
         diagnosis: diagnosis,
       });
       console.log(response.data.data);
-      setRetInterpretations((prev) => [...prev, response.data.data]); // Add the new interpretation to the state
-      setError(null);
+  setRetInterpretations((prev) => Array.isArray(prev) ? [...prev, response.data.data] : [response.data.data]);
+  setError(null);
     } catch (err) {
       setError("Error creating interpretation");
       console.error(err);
@@ -80,49 +89,58 @@ const getInterpretationByStudyId = async (studyId: string): Promise<Interpretati
   };
 
   // Update an interpretation
-  const updateInterpretation = async (interpretationId: string, diagnosis: string) => {
-    setIsLoading(true);
-    try {
-      const response = await AXIOS_PUT(`/api/interpretation/${interpretationId}`, {
-        diagnosis: diagnosis,
-      });
-      setRetInterpretations((prev) =>
-        prev.map((interpretation) =>
-          interpretation.interpretationId === interpretationId
-            ? { ...interpretation, diagnosis: response.data.data.diagnosis }
-            : interpretation
-        )
-      );
-      setError(null);
-    } catch (err) {
-      setError("Error updating interpretation");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ const updateInterpretation = async (interpretationId: string, diagnosis: string) => {
+  setIsLoading(true);
+  try {
+    console.log(interpretationId, diagnosis, "the data sent");
+    const response = await AXIOS_PUT(`/api/interpretation/${interpretationId}`, {
+      diagnosis: diagnosis,
+    });
+    console.log(response);
+    // Check if `prev` is an array before mapping
+    setRetInterpretations((prev) =>
+      Array.isArray(prev)
+        ? prev.map((interpretation) =>
+            interpretation.interpretationId === interpretationId
+              ? { ...interpretation, diagnosis: response.data.data.diagnosis }
+              : interpretation
+          )
+        : []
+    );
+    setError(null);
+  } catch (err) {
+    setError("Error updating interpretation");
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-  // Delete an interpretation
-  const deleteInterpretation = async (interpretationId: string) => {
-    setIsLoading(true);
-    try {
-      await AXIOS_DELETE(`/api/interpretation/${interpretationId}`);
-      setRetInterpretations((prev) =>
-        prev.filter((interpretation) => interpretation.interpretationId !== interpretationId)
-      );
-      setError(null);
-    } catch (err) {
-      setError("Error deleting interpretation");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ // Delete an interpretation
+const deleteInterpretation = async (interpretationId: string) => {
+  setIsLoading(true);
+  try {
+    await AXIOS_DELETE(`/api/interpretation/${interpretationId}`);
+    // Check if `prev` is an array before filtering
+    setRetInterpretations((prev) =>
+      Array.isArray(prev)
+        ? prev.filter((interpretation) => interpretation.interpretationId !== interpretationId)
+        : []
+    );
+    setError(null);
+  } catch (err) {
+    setError("Error deleting interpretation");
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <InterpretationContext.Provider
       value={{
         retInterpretations,
+        isGetLoading,
         isLoading,
         error,
         createInterpretation,

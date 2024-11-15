@@ -10,6 +10,7 @@ import {
   useTheme,
   alpha,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Send,
@@ -27,11 +28,15 @@ import { useInterpretation } from '../../contexts/InterpretationContext';
 interface InterpretationFormProps {
   interpretation: Interpretation | null; // Interpretation data passed as prop
   currentRadiologistId: string; // Current radiologist ID for checking edit permissions
+  loggedUserRole:string;
+  loading:boolean;
   onSubmit: (text: string, isNew: boolean) => void; // Function to handle form submission
 }
 
 export const InterpretationForm: React.FC<InterpretationFormProps> = ({
   interpretation,
+  loggedUserRole,
+  loading,
   onSubmit,
 }) => {
   const [text, setText] = React.useState(interpretation?.diagnosis || '');
@@ -39,7 +44,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
 
 
   const canEdit =
-    !interpretation || interpretation.roleId === '3';
+  loggedUserRole === '3';
   const theme = useTheme();
 
   // Effect hook to reset text when interpretation prop changes
@@ -204,9 +209,6 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
 
 onClick={handleSubmit}
             disabled={text?.trim().length === 0}
-// =======
-//             onClick={handleSubmit} // Calls handleSubmit
-
             fullWidth
             sx={{
               py: 1.5,
@@ -220,7 +222,7 @@ onClick={handleSubmit}
               },
             }}
           >
-            {retInterpretations?.length > 0 ? 'Update' : 'Submit'} Interpretation
+        {loading ? <CircularProgress color="inherit" /> : `${retInterpretations?.length > 0 ? 'Update' : 'Submit'} Interpretation`}
           </Button>
         </Box>
       )}

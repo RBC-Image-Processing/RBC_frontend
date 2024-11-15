@@ -44,7 +44,7 @@ export const RadiologyWorkspace: React.FC = () => {
 //     radiologistId: 'RD00023',
 //     createdAt: new Date().toISOString(),
 //   });
-  const { retInterpretations, createInterpretation,getInterpretationByStudyId} = useInterpretation();
+  const { isLoading,isGetLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
 
 
 
@@ -99,7 +99,7 @@ useEffect(() => {
 
   fetchInterpretation();
 
-}, [selectedStudy, loggedInUser]);
+}, [selectedStudy, loggedInUser,isLoading]);
 
 
 
@@ -271,15 +271,17 @@ useEffect(() => {
             <InterpretationForm
               interpretation={interpretation || null}
               currentRadiologistId={loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'}
+              loggedUserRole={loggedInUser?.roleId?.toString() || '3'}
+              loading={isLoading ?? false}
               onSubmit={(text) => {
                 console.log(selectedStudy?.studyId, loggedInUser?.userId, "info to be used")
-                // if (retInterpretations&&interpretation &&retInterpretations[0].userId===loggedInUser?.userId) {
-                //   if (retInterpretations[0]?.interpretationId) {
-                //     updateInterpretation(retInterpretations[0]?.interpretationId, text);
-                //   }
-                // } else {
+                if (retInterpretations&&interpretation &&retInterpretations[0].userId===loggedInUser?.userId) {
+                  if (retInterpretations[0]?.interpretationId) {
+                    updateInterpretation(retInterpretations[0]?.interpretationId, text);
+                  }
+                } else {
                  createInterpretation(selectedStudy?.studyId, loggedInUser?.userId, text);
-                // }
+                }
 
               }
               }
