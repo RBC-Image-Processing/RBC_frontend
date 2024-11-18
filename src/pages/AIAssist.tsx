@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import {
@@ -38,6 +39,17 @@ import ConfidenceProgressBar from '../components/ProgressBar';
 import { getToken } from '../api/token';
 import { decodeToken } from '../util/decodeToken';
 import { useUser } from '../contexts/UserContext';
+import { useFeedBack } from '../contexts/FeedbackContext';
+import { useInterpretation } from '../contexts/InterpretationContext';
+
+
+
+type User = {
+  userId: string;
+  email: string;
+  fullName: string;
+  roleId: number;
+};
 
 interface AIInterpretation {
   id: string;
@@ -47,12 +59,13 @@ interface AIInterpretation {
   timestamp: string;
   rating?: number;
   comments?: {
-    userId: string;
-    userRole: string;
-    text: string;
+    user:  User | undefined;
+    studyId:string | undefined;
+    comment: string;
     timestamp: string;
   }[];
 }
+
 
 interface RadiologistInterpretation {
   id: string;
@@ -95,7 +108,9 @@ export const AIAssist: React.FC = () => {
    const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-   const {loading, loggedInUser, getUser} = useUser();
+   const {loading, loggedInUser, getUser, getUserDetails} = useUser();
+   const {feedback, getFeedback, postFeedback,putFeedback,deleteFeedback,isLoading,message} = useFeedBack();
+   const {getInterpretationByStudyId} = useInterpretation();
 
 //get user information with the userId
 useEffect(() => {
@@ -117,6 +132,8 @@ useEffect(() => {
   const [studyListOpen, setStudyListOpen] = useState(!isMobile);
   const [activeTab, setActiveTab] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+    const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
+    const [aiInterpretationId,setAiInterpretationId] = useState(null)
   const [aiInterpretation, setAiInterpretation] =
     useState<AIInterpretation | null>(null);
   const [radiologistInterpretation, setRadiologistInterpretation] =
@@ -127,7 +144,7 @@ useEffect(() => {
 
   const canRate = loggedInUser?.roleId === 2;
 
-
+  console.log(aiInterpretation,"the intttt")
   // Reset states when study changes
   useEffect(() => {
     setCurrentInstance(0);
@@ -137,15 +154,11 @@ useEffect(() => {
     setComment('');
 
     if (selectedStudy) {
+      console.log(selectedStudy.studyId, " fetching the study id");
+      
       fetchRadiologistInterpretation(selectedStudy.studyId);
     }
   }, [selectedStudy?.studyId]);
-
- 
-
-
-
-
 
 
   useEffect(() => {
@@ -180,13 +193,16 @@ useEffect(() => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      const interpretation = await getInterpretationByStudyId(studyId);
+      const radiologist = await getUserDetails(interpretation[0]?.userId)
+      
       const mockResponse: RadiologistInterpretation = {
         id: `rad-${studyId}`,
         studyId,
-        text: 'The chest radiograph demonstrates patchy airspace opacification in the right lower lobe, consistent with pneumonia. Heart size is normal. No pleural effusion or pneumothorax is seen. The visualized bony structures are intact.',
-        radiologistId: 'RAD001',
-        radiologistName: 'Dr. Sarah Johnson',
-        timestamp: new Date().toISOString(),
+        text: interpretation[0]?.diagnosis || 'No interpretation available.',
+        radiologistId: interpretation[0]?.userId,
+        radiologistName: radiologist?.fullName || 'Unknown Radiologist',
+        timestamp: interpretation[0]?.timestamp,
         status: 'completed',
         priority: 'routine',
       };
@@ -205,8 +221,6 @@ useEffect(() => {
       setStudyListOpen(false);
     }
   };
-
-
 
 const handleRequestAI = async () => {
   if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
@@ -230,13 +244,13 @@ const handleRequestAI = async () => {
 
     
     // Extract AI interpretation from the response
-    const { id, studyId, interpretation, confidence, timestamp } = response.data;
+    const {  interpretation, confidence, timestamp } = response.data;
     
     console.log(interpretation, "the ai response")
     // Construct the AIInterpretation object
     const aiResult: AIInterpretation = {
-      id: id || Date.now().toString(),
-      studyId: studyId || selectedStudy.studyId,
+      id:  Date.now().toString(),
+      studyId:  selectedStudy.studyId,
       interpretation: interpretation || "No interpretation available.",
       confidence: confidence || 0,
       timestamp: timestamp || new Date().toISOString(),
@@ -252,39 +266,74 @@ const handleRequestAI = async () => {
   }
 };
 
+const handleSaveAiInterpretation = async () => {
+  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+  setIsSubmissionComplete(true);
 
-  // const handleRequestAI = async () => {
-  //   if (!selectedStudy) return;
-  //   setIsProcessing(true);
-  //   try {
-  //     // Simulate API call
-  //     await new Promise((resolve) => setTimeout(resolve, 2000));
-  //     const mockAIResult: AIInterpretation = {
-  //       id: Date.now().toString(),
-  //       studyId: selectedStudy.id,
-  //       text: 'Analysis indicates presence of consolidation in the right lower lobe with approximately 89% confidence. Potential indicators of bacterial pneumonia. No significant cardiomegaly observed. Recommendation: Clinical correlation advised.',
-  //       confidence: 0.89,
-  //       timestamp: new Date().toISOString(),
-  //       comments: [],
-  //     };
-  //     setAiInterpretation(mockAIResult);
-  //   } catch (error) {
-  //     console.error('Error requesting AI interpretation:', error);
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // };
+  try {
+    const reqData = {
+      studyId:selectedStudy.studyId,
+      diagnosis: aiInterpretation?.interpretation?.toString()||"",
+      confidenceScore: aiInterpretation?.confidence?.toString() || ''
+    }
+    
+    console.log(reqData, "the req data")
 
-  const handleSubmitFeedback = async () => {
-    if (!rating || !comment || !aiInterpretation || !user) return;
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+const response = await axios.post(
+  "http://localhost:8000/api/interpret/create",
+  reqData, // Send reqData directly as JSON
+  {
+    headers: {
+      "Content-Type": "application/json", // Set content type to JSON
+    },
+  }
+);
 
+console.log(response, "The intepretation id")
+if(response.data.status === 201){
+  const data = response.data.data;
+console.log(data, "the id")
+  return data.aiInterpretationId;
+}
+
+  } catch (error) {
+    console.error("Error requesting AI interpretation:", error);
+  } finally {
+    setIsSubmissionComplete(false);
+  }
+};
+
+
+  
+const handleSubmitFeedback = async () => {
+  if (!rating || !comment || !aiInterpretation || !loggedInUser) return;
+  
+  
+  try {
+    
+   const interpretationId=  await handleSaveAiInterpretation()
+    console.log(interpretationId, "the ai bef")
+    // Prepare feedback data for the API request
+    const feedbackData = {
+      userId: loggedInUser.userId,
+      aiInterpretationId: interpretationId&&interpretationId,
+      comment: comment,
+      rating: rating,
+      timestamp: new Date().toISOString(),
+    };
+
+
+  //  Call the real API to submit feedback
+    const response = await postFeedback(feedbackData);
+
+        console.log(loggedInUser,"the logged In userr")
+
+    // Update state with the new comment if the API call succeeds
+    if (response ) {
       const newComment = {
-        userId: user.email,
-        userRole: user.role,
-        text: comment,
+        user: loggedInUser,
+        studyId: selectedStudy?.studyId,
+        comment: comment,
         timestamp: new Date().toISOString(),
       };
 
@@ -298,13 +347,16 @@ const handleRequestAI = async () => {
           : null
       );
 
+      // Clear form fields
       setRating(null);
       setComment('');
       setActiveTab(0); // Switch back to AI Analysis tab
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
     }
-  };
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+  }
+};
+
 
   return (
     <Box
@@ -532,27 +584,31 @@ const handleRequestAI = async () => {
                                     spacing={1}
                                     alignItems="center"
                                   >
-                                    <Avatar
+
+
+                                 
+                             <Avatar
                                       sx={{
                                         width: 24,
                                         height: 24,
                                         fontSize: '0.875rem',
                                       }}
                                     >
-                                      {comment.userRole[0]}
+                             
+                                     {comment?.user?.fullName} •{' '}
                                     </Avatar>
                                     <Typography
                                       variant="caption"
                                       color="text.secondary"
                                     >
-                                      {comment.userRole} •{' '}
+                                   
                                       {new Date(
                                         comment.timestamp
                                       ).toLocaleString()}
-                                    </Typography>
+                                    </Typography> 
                                   </Stack>
                                   <Typography variant="body2">
-                                    {comment.text}
+                                    {comment.comment}
                                   </Typography>
                                 </Stack>
                               </Paper>
@@ -730,7 +786,7 @@ const handleRequestAI = async () => {
                         disabled={!rating || !comment}
                         sx={{ mt: 2 }}
                       >
-                        Submit Feedback
+                  {  isLoading? <CircularProgress/> :   " Submit Feedback"}
                       </Button>
                     </Stack>
                   )}
@@ -773,3 +829,8 @@ const handleRequestAI = async () => {
 };
 
 export default AIAssist;
+
+
+
+
+

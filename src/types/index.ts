@@ -91,28 +91,29 @@ export interface UserContextType {
   sendActivateAccountRequest: (email: string) => Promise<boolean>;
   activateAccount: (newPassword: string, token:string|null) => Promise<boolean>;
   loggedInUser: LoggedUser | null;
+  getUserDetails: (userId: string) => Promise<unknown>;
 }
 
 
 export interface FeedBackContextType{
-  feedbacks:Feedback[] | null;
+  feedback:Feedback[] | null;
   getFeedback:(doctor_comment_id: string)=>Promise<boolean>;
   postFeedback:(data:object)=>Promise<boolean>;
   putFeedback:(doctor_comment_id:string, data:object)=>Promise<boolean>;
   deleteFeedback:(doctor_comment_id:string)=>Promise<boolean>;
-  loading: boolean | null;
+  isLoading: boolean | null;
   message:string;
-  errors:Err;
+  errors: Err | null;
 }
 
 
 export interface Instance {
   id: string;
-  // imagePath: string;
+  imagePath: string;
 }
 
 export interface Study {
-  // id: string;
+  id: string;
   patientId: string;
   patientName:string;
   studyId: string;

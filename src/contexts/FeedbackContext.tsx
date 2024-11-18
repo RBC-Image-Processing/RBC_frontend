@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { FeedBackContextType, Feedback, Err } from '../types/index';
 import { AXIOS_DELETE, AXIOS_GET, AXIOS_POST, AXIOS_PUT } from '../api/axios';
+import { DELETE_FEEDBACK, GET_FEEDBACK_BY_STUDY, POST_FEEDBACK, PUT_FEEDBACK } from '../helper/Urls';
 
 // Initializing the feedback context with a default value
 const FeedbackContext = createContext<FeedBackContextType | undefined>(undefined);
@@ -8,14 +9,14 @@ const FeedbackContext = createContext<FeedBackContextType | undefined>(undefined
 // Feedback Provider
 export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [feedback, setFeedback] = useState<Feedback[] | null>(null);
-  const [loading, setLoading] = useState<boolean | null>(false);
+  const [isLoading, setLoading] = useState<boolean | null>(false);
   const [message, setMessage] = useState<string>('');
   const [errors, setErrors] = useState<Err | null>(null);
 
   const getFeedback = useCallback(async (doctor_comment_id: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await AXIOS_GET(`/api/feedback/${doctor_comment_id}`); // Adjust API endpoint as needed
+      const response = await AXIOS_GET(`${GET_FEEDBACK_BY_STUDY}/${doctor_comment_id}`); // Adjust API endpoint as needed
       if(response.data.status === 200) {
     const data = response.data.data
       setFeedback(data);
@@ -28,13 +29,15 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setErrors(error as Err);
       setLoading(false);
       return false;
+    }finally {
+      setLoading(false);
     }
   }, []);
 
   const postFeedback = async (data: object): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await AXIOS_POST("/api/feedback",data)
+      const response = await AXIOS_POST(`${POST_FEEDBACK}`,data)
 
       if(response.data.status === 200){
      const newFeedback = await response.data.data;
@@ -48,13 +51,15 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setErrors(error as Err);
       setLoading(false);
       return false;
+    }finally {
+      setLoading(false);
     }
   };
 
   const putFeedback = async (doctor_comment_id: string, data: object): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await AXIOS_PUT(`/api/feedback/${doctor_comment_id}`, data);
+      const response = await AXIOS_PUT(`${PUT_FEEDBACK}/${doctor_comment_id}`, data);
     
       const updatedFeedback = await response.data.data;
       setFeedback((prev) =>
@@ -66,13 +71,15 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setErrors(error as Err);
       setLoading(false);
       return false;
+    }finally {
+      setLoading(false);
     }
   };
 
   const deleteFeedback = async (doctor_comment_id: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await AXIOS_DELETE(`/api/feedback/${doctor_comment_id}`)
+      const response = await AXIOS_DELETE(`${DELETE_FEEDBACK}/${doctor_comment_id}`)
       
         if (response.data.status === 404) {
             setMessage(response.data.message);
@@ -87,6 +94,8 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setErrors(error as Err);
       setLoading(false);
       return false;
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -98,7 +107,7 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         postFeedback,
         putFeedback,
         deleteFeedback,
-        loading,
+        isLoading,
         message,
         errors,
       }}

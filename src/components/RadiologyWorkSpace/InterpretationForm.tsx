@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   TextField,
@@ -10,6 +10,7 @@ import {
   useTheme,
   alpha,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Send,
@@ -22,21 +23,41 @@ import {
 } from 'lucide-react';
 
 import { Interpretation } from '../../types/radiologist';
+import { useInterpretation } from '../../contexts/InterpretationContext';
 
 interface InterpretationFormProps {
-  interpretation: Interpretation | null;
-  currentRadiologistId: string;
-  onSubmit: (text: string) => void;
+  interpretation: Interpretation | null; // Interpretation data passed as prop
+  currentRadiologistId: string; // Current radiologist ID for checking edit permissions
+  loggedUserRole:string;
+  loading:boolean;
+  onSubmit: (text: string, isNew: boolean) => void; // Function to handle form submission
 }
 
 export const InterpretationForm: React.FC<InterpretationFormProps> = ({
   interpretation,
+  loggedUserRole,
+  loading,
   onSubmit,
 }) => {
-  const [text, setText] = React.useState(interpretation?.text || '');
+  const [text, setText] = React.useState(interpretation?.diagnosis || '');
+  const { retInterpretations} = useInterpretation();
+
+
   const canEdit =
-    !interpretation || interpretation.roleId === 3;
+  loggedUserRole === '3';
   const theme = useTheme();
+
+  // Effect hook to reset text when interpretation prop changes
+  useEffect(() => {
+    if (interpretation) {
+      setText(interpretation?.diagnosis);
+    }
+  }, [interpretation]);
+
+  const handleSubmit = () => {
+    const isNew = !interpretation; // Check if it's a new interpretation or existing one
+    onSubmit(text, isNew); // Call the onSubmit function with text and whether it's a new interpretation
+  };
 
   return (
     <Paper
@@ -74,7 +95,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
 
       {/* Status Section */}
       <Box sx={{ p: 2 }}>
-        {interpretation ? (
+        {interpretation && retInterpretations? (
           <Box
             sx={{
               display: 'flex',
@@ -89,7 +110,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Chip
                 icon={<User size={16} />}
-                label={interpretation.radiologistId}
+                label={interpretation?.radiologistId}
                 variant="outlined"
                 color="primary"
                 size="small"
@@ -97,7 +118,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
               <Tooltip title="Interpretation Date">
                 <Chip
                   icon={<Clock size={16} />}
-                  label={interpretation.createdAt}
+                  label={interpretation?.createdAt}
                   variant="outlined"
                   size="small"
                   color="default"
@@ -185,8 +206,9 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
           <Button
             variant="contained"
             startIcon={<Send size={18} />}
-            onClick={() => onSubmit(text)}
-            disabled={text.trim().length === 0}
+
+onClick={handleSubmit}
+            disabled={text?.trim().length === 0}
             fullWidth
             sx={{
               py: 1.5,
@@ -200,7 +222,7 @@ export const InterpretationForm: React.FC<InterpretationFormProps> = ({
               },
             }}
           >
-            Submit Interpretation
+        {loading ? <CircularProgress color="inherit" /> : `${retInterpretations?.length > 0 ? 'Update' : 'Submit'} Interpretation`}
           </Button>
         </Box>
       )}
