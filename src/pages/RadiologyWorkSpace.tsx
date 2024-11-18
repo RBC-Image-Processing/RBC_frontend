@@ -23,7 +23,7 @@ import { getToken } from '../api/token';
 import { decodeToken } from '../util/decodeToken';
 import {useInterpretation } from '../contexts/InterpretationContext';
 // import { dummyStudies } from '../helper/dummyStuDIES';
-//Problem
+
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -36,6 +36,8 @@ export const RadiologyWorkspace: React.FC = () => {
   const [studyListOpen, setStudyListOpen] = useState(false)
   const {loading, loggedInUser, getUser} = useUser();
   console.log("Testing........",selectedStudy)
+
+
 // =======
 //   const [studyListOpen, setStudyListOpen] = useState(false);
 //   const [interpretation, setInterpretation] = useState<Interpretation>({
@@ -44,8 +46,9 @@ export const RadiologyWorkspace: React.FC = () => {
 //     radiologistId: 'RD00023',
 //     createdAt: new Date().toISOString(),
 //   });
-  const { isLoading,isGetLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
 
+
+  const { isLoading,isGetLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
 
 
 //get user information with the userId
@@ -61,9 +64,6 @@ useEffect(() => {
 
   fetchUser();
 }, []);
-
-
-
 
 
 
@@ -112,7 +112,6 @@ useEffect(() => {
         // Make the API call to fetch studies
         const response = await axios.get<any>('http://localhost:8000/api/study');
 
-// <<<<<<< Updated upstream
         console.log(response, "the response")
         
         // Update the state with the fetched studies
@@ -121,9 +120,7 @@ useEffect(() => {
 
         setStudies(filteredValue);
       
-// =======
-//         setStudies(dummyStudies);
-// >>>>>>> Stashed changes
+
       } catch (error) {
         console.error('Error fetching studies:', error);
       } finally {

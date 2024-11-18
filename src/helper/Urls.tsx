@@ -36,6 +36,8 @@ export const POST_INTERPRETATION = "/api/interpretation"
 export const PUT_INTERPRETATION = "/api/interpretation"
 
 
+
+
 //Doctor comments management 
 
 export const GET_FEEDBACK_BY_STUDY = "/api/doctor-comments/study"

@@ -91,6 +91,7 @@ export interface UserContextType {
   sendActivateAccountRequest: (email: string) => Promise<boolean>;
   activateAccount: (newPassword: string, token:string|null) => Promise<boolean>;
   loggedInUser: LoggedUser | null;
+  getUserDetails: (userId: string) => Promise<unknown>;
 }
 
 

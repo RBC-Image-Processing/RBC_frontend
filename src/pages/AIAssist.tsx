@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import {
@@ -39,6 +40,7 @@ import { getToken } from '../api/token';
 import { decodeToken } from '../util/decodeToken';
 import { useUser } from '../contexts/UserContext';
 import { useFeedBack } from '../contexts/FeedbackContext';
+import { useInterpretation } from '../contexts/InterpretationContext';
 
 
 
@@ -63,6 +65,7 @@ interface AIInterpretation {
     timestamp: string;
   }[];
 }
+
 
 interface RadiologistInterpretation {
   id: string;
@@ -105,8 +108,9 @@ export const AIAssist: React.FC = () => {
    const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-   const {loading, loggedInUser, getUser} = useUser();
+   const {loading, loggedInUser, getUser, getUserDetails} = useUser();
    const {feedback, getFeedback, postFeedback,putFeedback,deleteFeedback,isLoading,message} = useFeedBack();
+   const {getInterpretationByStudyId} = useInterpretation();
 
 //get user information with the userId
 useEffect(() => {
@@ -150,15 +154,11 @@ useEffect(() => {
     setComment('');
 
     if (selectedStudy) {
+      console.log(selectedStudy.studyId, " fetching the study id");
+      
       fetchRadiologistInterpretation(selectedStudy.studyId);
     }
   }, [selectedStudy?.studyId]);
-
- 
-
-
-
-
 
 
   useEffect(() => {
@@ -193,13 +193,16 @@ useEffect(() => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      const interpretation = await getInterpretationByStudyId(studyId);
+      const radiologist = await getUserDetails(interpretation[0]?.userId)
+      
       const mockResponse: RadiologistInterpretation = {
         id: `rad-${studyId}`,
         studyId,
-        text: 'The chest radiograph demonstrates patchy airspace opacification in the right lower lobe, consistent with pneumonia. Heart size is normal. No pleural effusion or pneumothorax is seen. The visualized bony structures are intact.',
-        radiologistId: 'RAD001',
-        radiologistName: 'Dr. Sarah Johnson',
-        timestamp: new Date().toISOString(),
+        text: interpretation[0]?.diagnosis || 'No interpretation available.',
+        radiologistId: interpretation[0]?.userId,
+        radiologistName: radiologist?.fullName || 'Unknown Radiologist',
+        timestamp: interpretation[0]?.timestamp,
         status: 'completed',
         priority: 'routine',
       };
@@ -239,7 +242,6 @@ const handleRequestAI = async () => {
       }
     );
 
-    //TODO Add the comments here !!! (but think carefully when to add comments)
     
     // Extract AI interpretation from the response
     const {  interpretation, confidence, timestamp } = response.data;
@@ -263,9 +265,6 @@ const handleRequestAI = async () => {
     setIsProcessing(false);
   }
 };
-
-
-
 
 const handleSaveAiInterpretation = async () => {
   if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
@@ -322,8 +321,6 @@ const handleSubmitFeedback = async () => {
       rating: rating,
       timestamp: new Date().toISOString(),
     };
-
-
 
 
   //  Call the real API to submit feedback
@@ -832,3 +829,8 @@ const handleSubmitFeedback = async () => {
 };
 
 export default AIAssist;
+
+
+
+
+
