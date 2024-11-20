@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import axios from "axios";
+import axios from 'axios';
 import {
   Box,
   Grid,
@@ -41,8 +40,7 @@ import { decodeToken } from '../util/decodeToken';
 import { useUser } from '../contexts/UserContext';
 import { useFeedBack } from '../contexts/FeedbackContext';
 import { useInterpretation } from '../contexts/InterpretationContext';
-
-
+import CustomRating from '../components/CustomRating';
 
 type User = {
   userId: string;
@@ -59,13 +57,12 @@ interface AIInterpretation {
   timestamp: string;
   rating?: number;
   comments?: {
-    user:  User | undefined;
-    studyId:string | undefined;
+    user: User | undefined;
+    studyId: string | undefined;
     comment: string;
     timestamp: string;
   }[];
 }
-
 
 interface RadiologistInterpretation {
   id: string;
@@ -105,26 +102,34 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 );
 
 export const AIAssist: React.FC = () => {
-   const { dicomImage } = useCornerstoneContext();
+  const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-   const {loading, loggedInUser, getUser, getUserDetails} = useUser();
-   const {feedback, getFeedback, postFeedback,putFeedback,deleteFeedback,isLoading,message} = useFeedBack();
-   const {getInterpretationByStudyId} = useInterpretation();
+  const { loading, loggedInUser, getUser, getUserDetails } = useUser();
+  const {
+    feedback,
+    getFeedback,
+    postFeedback,
+    putFeedback,
+    deleteFeedback,
+    isLoading,
+    message,
+  } = useFeedBack();
+  const { getInterpretationByStudyId } = useInterpretation();
 
-//get user information with the userId
-useEffect(() => {
-  const fetchUser = async () => {
-    //The fetching will be done when the loggedInUser is null
-    if (!loggedInUser) {
-      const token = getToken('token');
-      const { userId } = decodeToken(token);
-      await getUser(userId);
-    }
-  };
+  //get user information with the userId
+  useEffect(() => {
+    const fetchUser = async () => {
+      //The fetching will be done when the loggedInUser is null
+      if (!loggedInUser) {
+        const token = getToken('token');
+        const { userId } = decodeToken(token);
+        await getUser(userId);
+      }
+    };
 
-  fetchUser();
-}, []);
+    fetchUser();
+  }, []);
 
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
@@ -132,8 +137,8 @@ useEffect(() => {
   const [studyListOpen, setStudyListOpen] = useState(!isMobile);
   const [activeTab, setActiveTab] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-    const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
-    const [aiInterpretationId,setAiInterpretationId] = useState(null)
+  const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
+  const [aiInterpretationId, setAiInterpretationId] = useState(null);
   const [aiInterpretation, setAiInterpretation] =
     useState<AIInterpretation | null>(null);
   const [radiologistInterpretation, setRadiologistInterpretation] =
@@ -144,7 +149,7 @@ useEffect(() => {
 
   const canRate = loggedInUser?.roleId === 2;
 
-  console.log(aiInterpretation,"the intttt")
+  console.log(aiInterpretation, 'the intttt');
   // Reset states when study changes
   useEffect(() => {
     setCurrentInstance(0);
@@ -154,29 +159,31 @@ useEffect(() => {
     setComment('');
 
     if (selectedStudy) {
-      console.log(selectedStudy.studyId, " fetching the study id");
-      
+      console.log(selectedStudy.studyId, ' fetching the study id');
+
       fetchRadiologistInterpretation(selectedStudy.studyId);
     }
   }, [selectedStudy?.studyId]);
-
 
   useEffect(() => {
     const fetchStudies = async () => {
       // setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<any>('http://localhost:8000/api/study');
+        const response = await axios.get<any>(
+          'http://localhost:8000/api/study'
+        );
 
-        console.log(response, "the response")
-        
+        console.log(response, 'the response');
+
         // Update the state with the fetched studies
 
-        const filteredValue = response.data.data.filter((item)=> {return item !== null});
+        const filteredValue = response.data.data.filter((item) => {
+          return item !== null;
+        });
 
-        console.log(filteredValue, "the filtered value");
+        console.log(filteredValue, 'the filtered value');
         setStudies(filteredValue);
-      
       } catch (error) {
         console.error('Error fetching studies:', error);
       } finally {
@@ -187,15 +194,14 @@ useEffect(() => {
     fetchStudies();
   }, []);
 
-
   const fetchRadiologistInterpretation = async (studyId: string) => {
     setIsLoadingRadiologist(true);
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const interpretation = await getInterpretationByStudyId(studyId);
-      const radiologist = await getUserDetails(interpretation[0]?.userId)
-      
+      const radiologist = await getUserDetails(interpretation[0]?.userId);
+
       const mockResponse: RadiologistInterpretation = {
         id: `rad-${studyId}`,
         studyId,
@@ -222,141 +228,133 @@ useEffect(() => {
     }
   };
 
-const handleRequestAI = async () => {
-  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
-  setIsProcessing(true);
+  const handleRequestAI = async () => {
+    if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+    setIsProcessing(true);
 
-  try {
-    // Create FormData to include the file
-    const formData = new FormData();
-     formData.append("file", dicomImage.blob, "image.dcm");// `fileToUpload` should be the File object you want to send
+    try {
+      // Create FormData to include the file
+      const formData = new FormData();
+      formData.append('file', dicomImage.blob, 'image.dcm'); // `fileToUpload` should be the File object you want to send
 
-    // Make the API call
-    const response = await axios.post(
-      "http://172.29.98.121:8000/predict_with_interpretation",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data", // Set the content type
-        },
-      }
-    );
+      // Make the API call
+      const response = await axios.post(
+        'http://172.29.98.121:8000/predict_with_interpretation',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data', // Set the content type
+          },
+        }
+      );
 
-    
-    // Extract AI interpretation from the response
-    const {  interpretation, confidence, timestamp } = response.data;
-    
-    console.log(interpretation, "the ai response")
-    // Construct the AIInterpretation object
-    const aiResult: AIInterpretation = {
-      id:  Date.now().toString(),
-      studyId:  selectedStudy.studyId,
-      interpretation: interpretation || "No interpretation available.",
-      confidence: confidence || 0,
-      timestamp: timestamp || new Date().toISOString(),
-      comments: [],
-    };
+      // Extract AI interpretation from the response
+      const { interpretation, confidence, timestamp } = response.data;
 
-    // Set the AI interpretation
-    setAiInterpretation(aiResult);
-  } catch (error) {
-    console.error("Error requesting AI interpretation:", error);
-  } finally {
-    setIsProcessing(false);
-  }
-};
+      console.log(interpretation, 'the ai response');
+      // Construct the AIInterpretation object
+      const aiResult: AIInterpretation = {
+        id: Date.now().toString(),
+        studyId: selectedStudy.studyId,
+        interpretation: interpretation || 'No interpretation available.',
+        confidence: confidence || 0,
+        timestamp: timestamp || new Date().toISOString(),
+        comments: [],
+      };
 
-const handleSaveAiInterpretation = async () => {
-  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
-  setIsSubmissionComplete(true);
-
-  try {
-    const reqData = {
-      studyId:selectedStudy.studyId,
-      diagnosis: aiInterpretation?.interpretation?.toString()||"",
-      confidenceScore: aiInterpretation?.confidence?.toString() || ''
+      // Set the AI interpretation
+      setAiInterpretation(aiResult);
+    } catch (error) {
+      console.error('Error requesting AI interpretation:', error);
+    } finally {
+      setIsProcessing(false);
     }
-    
-    console.log(reqData, "the req data")
+  };
 
-const response = await axios.post(
-  "http://localhost:8000/api/interpret/create",
-  reqData, // Send reqData directly as JSON
-  {
-    headers: {
-      "Content-Type": "application/json", // Set content type to JSON
-    },
-  }
-);
+  const handleSaveAiInterpretation = async () => {
+    if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+    setIsSubmissionComplete(true);
 
-console.log(response, "The intepretation id")
-if(response.data.status === 201){
-  const data = response.data.data;
-console.log(data, "the id")
-  return data.aiInterpretationId;
-}
+    try {
+      const reqData = {
+        studyId: selectedStudy.studyId,
+        diagnosis: aiInterpretation?.interpretation?.toString() || '',
+        confidenceScore: aiInterpretation?.confidence?.toString() || '',
+      };
 
-  } catch (error) {
-    console.error("Error requesting AI interpretation:", error);
-  } finally {
-    setIsSubmissionComplete(false);
-  }
-};
+      console.log(reqData, 'the req data');
 
+      const response = await axios.post(
+        'http://localhost:8000/api/interpret/create',
+        reqData, // Send reqData directly as JSON
+        {
+          headers: {
+            'Content-Type': 'application/json', // Set content type to JSON
+          },
+        }
+      );
 
-  
-const handleSubmitFeedback = async () => {
-  if (!rating || !comment || !aiInterpretation || !loggedInUser) return;
-  
-  
-  try {
-    
-   const interpretationId=  await handleSaveAiInterpretation()
-    console.log(interpretationId, "the ai bef")
-    // Prepare feedback data for the API request
-    const feedbackData = {
-      userId: loggedInUser.userId,
-      aiInterpretationId: interpretationId&&interpretationId,
-      comment: comment,
-      rating: rating,
-      timestamp: new Date().toISOString(),
-    };
+      console.log(response, 'The intepretation id');
+      if (response.data.status === 201) {
+        const data = response.data.data;
+        console.log(data, 'the id');
+        return data.aiInterpretationId;
+      }
+    } catch (error) {
+      console.error('Error requesting AI interpretation:', error);
+    } finally {
+      setIsSubmissionComplete(false);
+    }
+  };
 
+  const handleSubmitFeedback = async () => {
+    if (!rating || !comment || !aiInterpretation || !loggedInUser) return;
 
-  //  Call the real API to submit feedback
-    const response = await postFeedback(feedbackData);
-
-        console.log(loggedInUser,"the logged In userr")
-
-    // Update state with the new comment if the API call succeeds
-    if (response ) {
-      const newComment = {
-        user: loggedInUser,
-        studyId: selectedStudy?.studyId,
+    try {
+      const interpretationId = await handleSaveAiInterpretation();
+      console.log(interpretationId, 'the ai bef');
+      // Prepare feedback data for the API request
+      const feedbackData = {
+        userId: loggedInUser.userId,
+        aiInterpretationId: interpretationId && interpretationId,
         comment: comment,
+        rating: rating,
         timestamp: new Date().toISOString(),
       };
 
-      setAiInterpretation((prev) =>
-        prev
-          ? {
-              ...prev,
-              rating,
-              comments: [...(prev.comments || []), newComment],
-            }
-          : null
-      );
+      //  Call the real API to submit feedback
+      const response = await postFeedback(feedbackData);
 
-      // Clear form fields
-      setRating(null);
-      setComment('');
-      setActiveTab(0); // Switch back to AI Analysis tab
+      console.log(loggedInUser, 'the logged In userr');
+
+      // Update state with the new comment if the API call succeeds
+      if (response) {
+        const newComment = {
+          user: loggedInUser,
+          studyId: selectedStudy?.studyId,
+          comment: comment,
+          timestamp: new Date().toISOString(),
+        };
+
+        setAiInterpretation((prev) =>
+          prev
+            ? {
+                ...prev,
+                rating,
+                comments: [...(prev.comments || []), newComment],
+              }
+            : null
+        );
+
+        // Clear form fields
+        setRating(null);
+        setComment('');
+        setActiveTab(0); // Switch back to AI Analysis tab
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
     }
-  } catch (error) {
-    console.error('Error submitting feedback:', error);
-  }
-};
-
+  };
 
   return (
     <Box
@@ -544,7 +542,9 @@ const handleSubmitFeedback = async () => {
                 ) : aiInterpretation ? (
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                       <ConfidenceProgressBar confidenceScore={aiInterpretation.confidence} />
+                      <ConfidenceProgressBar
+                        confidenceScore={aiInterpretation.confidence}
+                      />
                       {/* <Chip
                         label={`${(aiInterpretation.confidence * 100).toFixed(0)}% Confidence`}
                         color="primary"
@@ -558,7 +558,7 @@ const handleSubmitFeedback = async () => {
                         />
                       )} */}
                     </Stack>
-                   
+
                     <Paper
                       variant="outlined"
                       sx={{ p: 2, bgcolor: 'background.default' }}
@@ -584,28 +584,23 @@ const handleSubmitFeedback = async () => {
                                     spacing={1}
                                     alignItems="center"
                                   >
-
-
-                                 
-                             <Avatar
+                                    <Avatar
                                       sx={{
                                         width: 24,
                                         height: 24,
                                         fontSize: '0.875rem',
                                       }}
                                     >
-                             
-                                     {comment?.user?.fullName} •{' '}
+                                      {comment?.user?.fullName} •{' '}
                                     </Avatar>
                                     <Typography
                                       variant="caption"
                                       color="text.secondary"
                                     >
-                                   
                                       {new Date(
                                         comment.timestamp
                                       ).toLocaleString()}
-                                    </Typography> 
+                                    </Typography>
                                   </Stack>
                                   <Typography variant="body2">
                                     {comment.comment}
@@ -618,7 +613,7 @@ const handleSubmitFeedback = async () => {
                       )}
                   </Stack>
                 ) : (
-       <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Button
                       variant="contained"
                       startIcon={<Brain />}
@@ -754,10 +749,19 @@ const handleSubmitFeedback = async () => {
                           How accurate was the AI interpretation compared to
                           your clinical assessment?
                         </Typography>
-                        <Rating
+                        {/* <Rating
                           value={rating}
                           onChange={(_, value) => setRating(value)}
                           size="large"
+                          sx={{
+                            '& .MuiRating-iconFilled': {
+                              color: theme.palette.secondary.main,
+                            },
+                          }}
+                        /> */}
+                        <CustomRating
+                          value={rating}
+                          onChange={(_, value) => setRating(value)}
                           sx={{
                             '& .MuiRating-iconFilled': {
                               color: theme.palette.secondary.main,
@@ -786,7 +790,7 @@ const handleSubmitFeedback = async () => {
                         disabled={!rating || !comment}
                         sx={{ mt: 2 }}
                       >
-                  {  isLoading? <CircularProgress/> :   " Submit Feedback"}
+                        {isLoading ? <CircularProgress /> : ' Submit Feedback'}
                       </Button>
                     </Stack>
                   )}
@@ -829,8 +833,3 @@ const handleSubmitFeedback = async () => {
 };
 
 export default AIAssist;
-
-
-
-
-
