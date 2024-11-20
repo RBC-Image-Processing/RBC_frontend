@@ -7,8 +7,12 @@ import {
   TextField,
   Box,
   Typography,
+  Divider,
+  Avatar,
+  CircularProgress
 } from '@mui/material';
 import { Study } from '../../types/index';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices'; // Example icon
 
 interface ImageListProps {
   studies: Study[];
@@ -40,31 +44,60 @@ export const ImageList: React.FC<ImageListProps> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </Box>
-      <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-        {filteredStudies.map((study) => (
-          <ListItem key={study.id} disablePadding>
-            <ListItemButton
-              selected={selectedStudy?.id === study.id}
-              onClick={() => onStudySelect(study)}
-            >
-              <ListItemText
-                primary={study.description}
-                secondary={
-                  <>
-                    <Typography variant="body2" component="span">
-                      Patient ID: {study.patientId}
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      Date: {study.studyDate}
-                    </Typography>
-                  </>
-                }
-              />
-            </ListItemButton>
-          </ListItem>
+ {filteredStudies.length==0?   <Box 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        minHeight: '200px' // Adjust this value based on your layout
+      }}
+    >
+      <CircularProgress />
+    </Box> : <List sx={{ flexGrow: 1, overflow: 'auto' }}>
+      {filteredStudies &&
+        filteredStudies.map((study) => (
+          <React.Fragment key={study.studyId}>
+            <ListItem disablePadding>
+              <ListItemButton
+                selected={selectedStudy?.studyId === study.studyId}
+                onClick={() => onStudySelect(study)}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  {/* Icon for modality */}
+                  <Avatar sx={{ backgroundColor: '#1976d2', marginRight: 2 }}>
+                    <MedicalServicesIcon />
+                  </Avatar>
+
+                  {/* Study information */}
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {study.patientName}
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="body2" component="span">
+                          Modality: {study.modality}
+                        </Typography>
+                        <br />
+                        <Typography variant="body2" component="span">
+                          Date: {study.studyDate}
+                        </Typography>
+                        <br />
+                        <Typography variant="body2" color="textSecondary">
+                          {study.description}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </Box>
+              </ListItemButton>
+            </ListItem>
+            <Divider />
+          </React.Fragment>
         ))}
-      </List>
+    </List>}
     </Box>
   );
 };

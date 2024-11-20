@@ -1,9 +1,24 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import cornerstone from 'cornerstone-core';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import dicomParser from 'dicom-parser';
 
-const CornerstoneContext = createContext<boolean>(false);
+// Define the DicomImage interface
+interface DicomImage {
+  blob: Blob;
+  objectUrl: string;
+  arrayBuffer: ArrayBuffer;
+  image?: any;
+}
+
+// Define the context type
+interface CornerstoneContextType {
+  dicomImage: DicomImage | null;
+  setDicomImage: React.Dispatch<React.SetStateAction<DicomImage | null>>;
+}
+
+// Create the CornerstoneContext
+const CornerstoneContext = createContext<CornerstoneContextType | undefined>(undefined);
 
 export const useCornerstoneContext = () => {
   const context = useContext(CornerstoneContext);
@@ -14,6 +29,8 @@ export const useCornerstoneContext = () => {
 };
 
 export const CornerstoneProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [dicomImage, setDicomImage] = useState<DicomImage | null>(null);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -59,7 +76,7 @@ export const CornerstoneProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <CornerstoneContext.Provider value={true}>
+    <CornerstoneContext.Provider value={{ dicomImage, setDicomImage }}>
       {children}
     </CornerstoneContext.Provider>
   );

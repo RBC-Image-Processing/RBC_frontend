@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import {
@@ -33,21 +34,38 @@ import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
 import { Study } from '../types/index';
 import { useAuth } from '../contexts/AuthContext';
+import { useCornerstoneContext } from '../contexts/CornerstoneContext';
+import ConfidenceProgressBar from '../components/ProgressBar';
+import { getToken } from '../api/token';
+import { decodeToken } from '../util/decodeToken';
+import { useUser } from '../contexts/UserContext';
+import { useFeedBack } from '../contexts/FeedbackContext';
+import { useInterpretation } from '../contexts/InterpretationContext';
+
+
+
+type User = {
+  userId: string;
+  email: string;
+  fullName: string;
+  roleId: number;
+};
 
 interface AIInterpretation {
   id: string;
   studyId: string;
-  text: string;
+  interpretation: string;
   confidence: number;
   timestamp: string;
   rating?: number;
   comments?: {
-    userId: string;
-    userRole: string;
-    text: string;
+    user:  User | undefined;
+    studyId:string | undefined;
+    comment: string;
     timestamp: string;
   }[];
 }
+
 
 interface RadiologistInterpretation {
   id: string;
@@ -58,6 +76,13 @@ interface RadiologistInterpretation {
   timestamp: string;
   status: 'pending' | 'completed';
   priority?: 'routine' | 'urgent' | 'stat';
+}
+
+interface DicomImage {
+  blob: Blob;
+  objectUrl: string;
+  arrayBuffer: ArrayBuffer;
+  cornerstoneImage?: any;
 }
 
 interface TabPanelProps {
@@ -80,9 +105,26 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 );
 
 export const AIAssist: React.FC = () => {
+   const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { user } = useAuth();
+   const {loading, loggedInUser, getUser, getUserDetails} = useUser();
+   const {feedback, getFeedback, postFeedback,putFeedback,deleteFeedback,isLoading,message} = useFeedBack();
+   const {getInterpretationByStudyId} = useInterpretation();
+
+//get user information with the userId
+useEffect(() => {
+  const fetchUser = async () => {
+    //The fetching will be done when the loggedInUser is null
+    if (!loggedInUser) {
+      const token = getToken('token');
+      const { userId } = decodeToken(token);
+      await getUser(userId);
+    }
+  };
+
+  fetchUser();
+}, []);
 
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
@@ -90,6 +132,8 @@ export const AIAssist: React.FC = () => {
   const [studyListOpen, setStudyListOpen] = useState(!isMobile);
   const [activeTab, setActiveTab] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+    const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
+    const [aiInterpretationId,setAiInterpretationId] = useState(null)
   const [aiInterpretation, setAiInterpretation] =
     useState<AIInterpretation | null>(null);
   const [radiologistInterpretation, setRadiologistInterpretation] =
@@ -98,8 +142,9 @@ export const AIAssist: React.FC = () => {
   const [comment, setComment] = useState('');
   const [isLoadingRadiologist, setIsLoadingRadiologist] = useState(false);
 
-  const canRate = user?.role === 'PHYSICIAN';
+  const canRate = loggedInUser?.roleId === 2;
 
+  console.log(aiInterpretation,"the intttt")
   // Reset states when study changes
   useEffect(() => {
     setCurrentInstance(0);
@@ -109,331 +154,11 @@ export const AIAssist: React.FC = () => {
     setComment('');
 
     if (selectedStudy) {
-      fetchRadiologistInterpretation(selectedStudy.id);
+      console.log(selectedStudy.studyId, " fetching the study id");
+      
+      fetchRadiologistInterpretation(selectedStudy.studyId);
     }
-  }, [selectedStudy?.id]);
-
-  // useEffect(() => {
-  //   const fetchStudies = async () => {
-  //     try {
-  //       // This would be replaced with an actual API call
-
-  //       setStudies([
-  //         {
-  //           id: 'STU001',
-  //           patientId: 'PAT12345',
-  //           studyDate: '2024-03-22',
-  //           description: 'Chest X-Ray - PA and Lateral',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG001-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG001-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU002',
-  //           patientId: 'PAT67890',
-  //           studyDate: '2024-03-22',
-  //           description: 'Brain MRI with Contrast',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG002-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG002-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG002-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU003',
-  //           patientId: 'PAT24680',
-  //           studyDate: '2024-03-21',
-  //           description: 'Cervical Spine X-Ray',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG003-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG003-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG003-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU004',
-  //           patientId: 'PAT13579',
-  //           studyDate: '2024-03-21',
-  //           description: 'Lumbar Spine MRI',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG004-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG004-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG004-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU005',
-  //           patientId: 'PAT11111',
-  //           studyDate: '2024-03-20',
-  //           description: 'Abdominal X-Ray',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG005-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG005-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU006',
-  //           patientId: 'PAT22222',
-  //           studyDate: '2024-03-20',
-  //           description: 'Knee MRI Right',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG006-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-3',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG006-4',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU007',
-  //           patientId: 'PAT33333',
-  //           studyDate: '2024-03-19',
-  //           description: 'Chest X-Ray - Portable',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG007-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU008',
-  //           patientId: 'PAT44444',
-  //           studyDate: '2024-03-19',
-  //           description: 'Shoulder MRI Left',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-2',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG008-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU009',
-  //           patientId: 'PAT55555',
-  //           studyDate: '2024-03-18',
-  //           description: 'Wrist X-Ray Right',
-  //           modality: 'XR',
-  //           instances: [
-  //             {
-  //               id: 'IMG009-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG009-2',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //             {
-  //               id: 'IMG009-3',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           id: 'STU010',
-  //           patientId: 'PAT66666',
-  //           studyDate: '2024-03-18',
-  //           description: 'Cervical Spine MRI',
-  //           modality: 'MR',
-  //           instances: [
-  //             {
-  //               id: 'IMG010-1',
-  //               imagePath: '/images/sample_dicom.dcm',
-  //             },
-  //             {
-  //               id: 'IMG010-2',
-  //               imagePath: '/images/sample_dicom1.dcm',
-  //             },
-  //             {
-  //               id: 'IMG010-3',
-  //               imagePath: '/images/sample_dicom2.dcm',
-  //             },
-  //           ],
-  //         },
-  //       ]);
-        
-  //     } catch (error) {
-  //       console.error('Error fetching studies:', error);
-  //     }
-  //   };
-
-  //   fetchStudies();
-  // }, []);
+  }, [selectedStudy?.studyId]);
 
 
   useEffect(() => {
@@ -468,13 +193,16 @@ export const AIAssist: React.FC = () => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      const interpretation = await getInterpretationByStudyId(studyId);
+      const radiologist = await getUserDetails(interpretation[0]?.userId)
+      
       const mockResponse: RadiologistInterpretation = {
         id: `rad-${studyId}`,
         studyId,
-        text: 'The chest radiograph demonstrates patchy airspace opacification in the right lower lobe, consistent with pneumonia. Heart size is normal. No pleural effusion or pneumothorax is seen. The visualized bony structures are intact.',
-        radiologistId: 'RAD001',
-        radiologistName: 'Dr. Sarah Johnson',
-        timestamp: new Date().toISOString(),
+        text: interpretation[0]?.diagnosis || 'No interpretation available.',
+        radiologistId: interpretation[0]?.userId,
+        radiologistName: radiologist?.fullName || 'Unknown Radiologist',
+        timestamp: interpretation[0]?.timestamp,
         status: 'completed',
         priority: 'routine',
       };
@@ -494,38 +222,118 @@ export const AIAssist: React.FC = () => {
     }
   };
 
-  const handleRequestAI = async () => {
-    if (!selectedStudy) return;
-    setIsProcessing(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      const mockAIResult: AIInterpretation = {
-        id: Date.now().toString(),
-        studyId: selectedStudy.id,
-        text: 'Analysis indicates presence of consolidation in the right lower lobe with approximately 89% confidence. Potential indicators of bacterial pneumonia. No significant cardiomegaly observed. Recommendation: Clinical correlation advised.',
-        confidence: 0.89,
-        timestamp: new Date().toISOString(),
-        comments: [],
-      };
-      setAiInterpretation(mockAIResult);
-    } catch (error) {
-      console.error('Error requesting AI interpretation:', error);
-    } finally {
-      setIsProcessing(false);
+const handleRequestAI = async () => {
+  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+  setIsProcessing(true);
+
+  try {
+    // Create FormData to include the file
+    const formData = new FormData();
+     formData.append("file", dicomImage.blob, "image.dcm");// `fileToUpload` should be the File object you want to send
+
+    // Make the API call
+    const response = await axios.post(
+      "http://172.29.98.121:8000/predict_with_interpretation",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Set the content type
+        },
+      }
+    );
+
+    
+    // Extract AI interpretation from the response
+    const {  interpretation, confidence, timestamp } = response.data;
+    
+    console.log(interpretation, "the ai response")
+    // Construct the AIInterpretation object
+    const aiResult: AIInterpretation = {
+      id:  Date.now().toString(),
+      studyId:  selectedStudy.studyId,
+      interpretation: interpretation || "No interpretation available.",
+      confidence: confidence || 0,
+      timestamp: timestamp || new Date().toISOString(),
+      comments: [],
+    };
+
+    // Set the AI interpretation
+    setAiInterpretation(aiResult);
+  } catch (error) {
+    console.error("Error requesting AI interpretation:", error);
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
+const handleSaveAiInterpretation = async () => {
+  if (!selectedStudy || !dicomImage) return; // Ensure both study and file are selected
+  setIsSubmissionComplete(true);
+
+  try {
+    const reqData = {
+      studyId:selectedStudy.studyId,
+      diagnosis: aiInterpretation?.interpretation?.toString()||"",
+      confidenceScore: aiInterpretation?.confidence?.toString() || ''
     }
-  };
+    
+    console.log(reqData, "the req data")
 
-  const handleSubmitFeedback = async () => {
-    if (!rating || !comment || !aiInterpretation || !user) return;
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+const response = await axios.post(
+  "http://localhost:8000/api/interpret/create",
+  reqData, // Send reqData directly as JSON
+  {
+    headers: {
+      "Content-Type": "application/json", // Set content type to JSON
+    },
+  }
+);
 
+console.log(response, "The intepretation id")
+if(response.data.status === 201){
+  const data = response.data.data;
+console.log(data, "the id")
+  return data.aiInterpretationId;
+}
+
+  } catch (error) {
+    console.error("Error requesting AI interpretation:", error);
+  } finally {
+    setIsSubmissionComplete(false);
+  }
+};
+
+
+  
+const handleSubmitFeedback = async () => {
+  if (!rating || !comment || !aiInterpretation || !loggedInUser) return;
+  
+  
+  try {
+    
+   const interpretationId=  await handleSaveAiInterpretation()
+    console.log(interpretationId, "the ai bef")
+    // Prepare feedback data for the API request
+    const feedbackData = {
+      userId: loggedInUser.userId,
+      aiInterpretationId: interpretationId&&interpretationId,
+      comment: comment,
+      rating: rating,
+      timestamp: new Date().toISOString(),
+    };
+
+
+  //  Call the real API to submit feedback
+    const response = await postFeedback(feedbackData);
+
+        console.log(loggedInUser,"the logged In userr")
+
+    // Update state with the new comment if the API call succeeds
+    if (response ) {
       const newComment = {
-        userId: user.email,
-        userRole: user.role,
-        text: comment,
+        user: loggedInUser,
+        studyId: selectedStudy?.studyId,
+        comment: comment,
         timestamp: new Date().toISOString(),
       };
 
@@ -539,13 +347,16 @@ export const AIAssist: React.FC = () => {
           : null
       );
 
+      // Clear form fields
       setRating(null);
       setComment('');
       setActiveTab(0); // Switch back to AI Analysis tab
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
     }
-  };
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+  }
+};
+
 
   return (
     <Box
@@ -733,7 +544,8 @@ export const AIAssist: React.FC = () => {
                 ) : aiInterpretation ? (
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
+                       <ConfidenceProgressBar confidenceScore={aiInterpretation.confidence} />
+                      {/* <Chip
                         label={`${(aiInterpretation.confidence * 100).toFixed(0)}% Confidence`}
                         color="primary"
                         size="small"
@@ -744,13 +556,14 @@ export const AIAssist: React.FC = () => {
                           color="secondary"
                           size="small"
                         />
-                      )}
+                      )} */}
                     </Stack>
+                   
                     <Paper
                       variant="outlined"
                       sx={{ p: 2, bgcolor: 'background.default' }}
                     >
-                      <Typography>{aiInterpretation.text}</Typography>
+                      <Typography>{aiInterpretation.interpretation}</Typography>
                     </Paper>
                     {aiInterpretation.comments &&
                       aiInterpretation.comments.length > 0 && (
@@ -771,27 +584,31 @@ export const AIAssist: React.FC = () => {
                                     spacing={1}
                                     alignItems="center"
                                   >
-                                    <Avatar
+
+
+                                 
+                             <Avatar
                                       sx={{
                                         width: 24,
                                         height: 24,
                                         fontSize: '0.875rem',
                                       }}
                                     >
-                                      {comment.userRole[0]}
+                             
+                                     {comment?.user?.fullName} •{' '}
                                     </Avatar>
                                     <Typography
                                       variant="caption"
                                       color="text.secondary"
                                     >
-                                      {comment.userRole} •{' '}
+                                   
                                       {new Date(
                                         comment.timestamp
                                       ).toLocaleString()}
-                                    </Typography>
+                                    </Typography> 
                                   </Stack>
                                   <Typography variant="body2">
-                                    {comment.text}
+                                    {comment.comment}
                                   </Typography>
                                 </Stack>
                               </Paper>
@@ -801,7 +618,7 @@ export const AIAssist: React.FC = () => {
                       )}
                   </Stack>
                 ) : (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
+       <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Button
                       variant="contained"
                       startIcon={<Brain />}
@@ -969,7 +786,7 @@ export const AIAssist: React.FC = () => {
                         disabled={!rating || !comment}
                         sx={{ mt: 2 }}
                       >
-                        Submit Feedback
+                  {  isLoading? <CircularProgress/> :   " Submit Feedback"}
                       </Button>
                     </Stack>
                   )}
@@ -1012,3 +829,8 @@ export const AIAssist: React.FC = () => {
 };
 
 export default AIAssist;
+
+
+
+
+

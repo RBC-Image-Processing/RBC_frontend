@@ -103,11 +103,31 @@ const getUser = async (userId:string): Promise<boolean> => {
     const res = await AXIOS_GET(`${GET_USERS}${userId}`);
 
     if (res.data.status === 200) {
-      console.log(res.data.data, "the api")
       setLoggedInUser(res.data.data);
       setLoading(false);
       // toast.success(res.data.message);   
       return true;
+    }
+  } catch (err: any) {
+    setLoading(false);
+    console.error(err);
+    const errorMessage = err.response?.data?.message || 'Login failed';
+    toast.error(errorMessage);
+    setMessage(errorMessage);
+  }
+  return false;
+};
+
+const getUserDetails = async (userId:string) => {
+  setLoading(true);
+
+  try {
+    // Assume AXIOS_GET is properly typed or you can add its type like this:
+    const res = await AXIOS_GET(`${GET_USERS}${userId}`);
+
+    if (res.data.status === 200) {
+      setLoading(false);
+      return res.data.data;
     }
   } catch (err: any) {
     setLoading(false);
@@ -189,7 +209,7 @@ const activateAccount = async (newPassword: string, token: string | null): Promi
 
 
   return (
-    <UserContext.Provider value={{  users, loggedInUser, getUser, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers}}>
+    <UserContext.Provider value={{  users, loggedInUser, getUser, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers,getUserDetails}}>
       {children}
     </UserContext.Provider>
   );

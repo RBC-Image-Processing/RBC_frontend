@@ -17,342 +17,120 @@ import { Study } from '../types/index';
 import { Interpretation } from '../types/radiologist';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import { Menu } from 'lucide-react';
+import axios from "axios"
+import { useUser } from '../contexts/UserContext';
+import { getToken } from '../api/token';
+import { decodeToken } from '../util/decodeToken';
+import {useInterpretation } from '../contexts/InterpretationContext';
+// import { dummyStudies } from '../helper/dummyStuDIES';
 
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   useCornerstoneContext();
 
-  const [studies, setStudies] = useState<Study[]>([]);
+  const [studies, setStudies] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [currentInstance, setCurrentInstance] = useState(0);
-  const [studyListOpen, setStudyListOpen] = useState(false);
-  const [interpretation, setInterpretation] = useState<Interpretation>({
-    text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
-    radiologistId: 'RD00023',
-    createdAt: new Date().toISOString(),
-  });
 
+  const [studyListOpen, setStudyListOpen] = useState(false)
+  const {loading, loggedInUser, getUser} = useUser();
+  console.log("Testing........",selectedStudy)
+
+
+// =======
+//   const [studyListOpen, setStudyListOpen] = useState(false);
+//   const [interpretation, setInterpretation] = useState<Interpretation>({
+//     id: '8fb3d973-4449cad4-c21bb79d-81c41b56-b9412373',
+//     text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
+//     radiologistId: 'RD00023',
+//     createdAt: new Date().toISOString(),
+//   });
+
+
+  const { isLoading,isGetLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
+
+
+//get user information with the userId
+useEffect(() => {
+  const fetchUser = async () => {
+    //The fetching will be done when the loggedInUser is null
+    if (!loggedInUser) {
+      const token = getToken('token');
+      const { userId } = decodeToken(token);
+      await getUser(userId);
+    }
+  };
+
+  fetchUser();
+}, []);
+
+
+
+//dependency is if a study is selected 
+// make an api call to get an interpretation associated with the study 
+useEffect(() => {
+  console.log("called changed study", selectedStudy?.studyId);
+
+  const fetchInterpretation = async () => {
+    if (selectedStudy) {
+      
+      const interpretations: Interpretation[] = await getInterpretationByStudyId(selectedStudy.studyId);
+
+      if (loggedInUser != null && interpretations?.length > 0) {
+        setInterpretation({
+          interpretationId: interpretations[0]?.interpretationId,
+          diagnosis: interpretations[0]?.diagnosis,
+          radiologistId: `RD ${loggedInUser.userId}`,
+          roleId: loggedInUser.roleId.toString(),
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        setInterpretation({
+          interpretationId: "",
+          diagnosis: " ",
+          radiologistId: "",
+          roleId: "",
+          createdAt: "",
+        });
+      }
+    }
+  };
+
+  fetchInterpretation();
+
+}, [selectedStudy, loggedInUser,isLoading]);
+
+
+
+   
+  const [interpretation, setInterpretation] = useState<Interpretation>();
   useEffect(() => {
     const fetchStudies = async () => {
+      // setIsLoading(true);ft_api_auth_intergration
       try {
-        // This would be replaced with an actual API call
+        // Make the API call to fetch studies
+        const response = await axios.get<any>('http://localhost:8000/api/study');
 
-        setStudies([
-          {
-            id: 'STU001',
-            patientId: 'PAT12345',
-            studyDate: '2024-03-22',
-            description: 'Chest X-Ray - PA and Lateral',
-            modality: 'XR',
-            instances: [
-              {
-                id: 'IMG001-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG001-2',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU002',
-            patientId: 'PAT67890',
-            studyDate: '2024-03-22',
-            description: 'Brain MRI with Contrast',
-            modality: 'MR',
-            instances: [
-              {
-                id: 'IMG002-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG002-2',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-              {
-                id: 'IMG002-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU003',
-            patientId: 'PAT24680',
-            studyDate: '2024-03-21',
-            description: 'Cervical Spine X-Ray',
-            modality: 'XR',
-            instances: [
-              {
-                id: 'IMG003-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG003-2',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-              {
-                id: 'IMG003-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU004',
-            patientId: 'PAT13579',
-            studyDate: '2024-03-21',
-            description: 'Lumbar Spine MRI',
-            modality: 'MR',
-            instances: [
-              {
-                id: 'IMG004-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG004-2',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-              {
-                id: 'IMG004-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU005',
-            patientId: 'PAT11111',
-            studyDate: '2024-03-20',
-            description: 'Abdominal X-Ray',
-            modality: 'XR',
-            instances: [
-              {
-                id: 'IMG005-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG005-2',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU006',
-            patientId: 'PAT22222',
-            studyDate: '2024-03-20',
-            description: 'Knee MRI Right',
-            modality: 'MR',
-            instances: [
-              {
-                id: 'IMG006-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG006-2',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG006-3',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-              {
-                id: 'IMG006-4',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU007',
-            patientId: 'PAT33333',
-            studyDate: '2024-03-19',
-            description: 'Chest X-Ray - Portable',
-            modality: 'XR',
-            instances: [
-              {
-                id: 'IMG007-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU008',
-            patientId: 'PAT44444',
-            studyDate: '2024-03-19',
-            description: 'Shoulder MRI Left',
-            modality: 'MR',
-            instances: [
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG008-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-2',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG008-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU009',
-            patientId: 'PAT55555',
-            studyDate: '2024-03-18',
-            description: 'Wrist X-Ray Right',
-            modality: 'XR',
-            instances: [
-              {
-                id: 'IMG009-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG009-2',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-              {
-                id: 'IMG009-3',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-            ],
-          },
-          {
-            id: 'STU010',
-            patientId: 'PAT66666',
-            studyDate: '2024-03-18',
-            description: 'Cervical Spine MRI',
-            modality: 'MR',
-            instances: [
-              {
-                id: 'IMG010-1',
-                imagePath: '/images/sample_dicom.dcm',
-              },
-              {
-                id: 'IMG010-2',
-                imagePath: '/images/sample_dicom1.dcm',
-              },
-              {
-                id: 'IMG010-3',
-                imagePath: '/images/sample_dicom2.dcm',
-              },
-            ],
-          },
-        ]);
+        console.log(response, "the response")
+        
+        // Update the state with the fetched studies
+
+        const filteredValue = response.data.data.filter((item)=> {return item !== null});
+
+        setStudies(filteredValue);
+      
+
       } catch (error) {
         console.error('Error fetching studies:', error);
+      } finally {
+        // setIsLoading(false);
       }
     };
 
     fetchStudies();
   }, []);
+
 
   const handleStudySelect = async (study: Study) => {
     setSelectedStudy(study);
@@ -361,6 +139,8 @@ export const RadiologyWorkspace: React.FC = () => {
     }
     setCurrentInstance(0);
   };
+
+   
 
   return (
     <Box
@@ -486,9 +266,22 @@ export const RadiologyWorkspace: React.FC = () => {
             }}
           >
             <InterpretationForm
-              interpretation={interpretation}
-              currentRadiologistId="RD00023"
-              onSubmit={() => {}}
+              interpretation={interpretation || null}
+              currentRadiologistId={loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'}
+              loggedUserRole={loggedInUser?.roleId?.toString() || '3'}
+              loading={isLoading ?? false}
+              onSubmit={(text) => {
+                console.log(selectedStudy?.studyId, loggedInUser?.userId, "info to be used")
+                if (retInterpretations&&interpretation &&retInterpretations[0].userId===loggedInUser?.userId) {
+                  if (retInterpretations[0]?.interpretationId) {
+                    updateInterpretation(retInterpretations[0]?.interpretationId, text);
+                  }
+                } else {
+                 createInterpretation(selectedStudy?.studyId, loggedInUser?.userId, text);
+                }
+
+              }
+              }
             />
           </Grid>
         </Grid>
@@ -525,3 +318,6 @@ export const RadiologyWorkspace: React.FC = () => {
 };
 
 export default RadiologyWorkspace;
+
+
+
