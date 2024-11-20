@@ -12,7 +12,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { InterpretationProvider } from './contexts/InterpretationContext'; // Correct the import path
 import NavBar from './components/NavBar';
 import Home from './pages/Home';
-import { Toaster } from "react-hot-toast";
+import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ActivateAccount from './pages/ActivateAccount';

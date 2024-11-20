@@ -67,7 +67,6 @@ export const ViewInterface: React.FC = () => {
   //   fetchStudies();
   // }, []);
 
-
   useEffect(() => {
     const fetchStudies = async () => {
       setIsLoading(true);
@@ -75,8 +74,6 @@ export const ViewInterface: React.FC = () => {
         // Make the API call to fetch studies
         const response = await axios.get<any>('http://localhost:8000/api/study');
 
-        console.log(response, "the response")
-        
         // Update the state with the fetched studies
 
         const filteredValue = response.data.data.filter((item)=> {return item !== null});
