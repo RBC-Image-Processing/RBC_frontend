@@ -164,7 +164,7 @@ export const AIAssist: React.FC = () => {
       try {
         // Make the API call to fetch studies
         const response: AxiosResponse<StudyApiResponse> = await axios.get(
-          `${BASE_URL}/api/study`
+          `${BASE_URL}api/study`
         );
 
         console.log(response, 'the response');
@@ -280,7 +280,7 @@ export const AIAssist: React.FC = () => {
       console.log(reqData, 'the req data');
 
       const response = await axios.post(
-        `${BASE_URL}/api/interpret/create`,
+        `${BASE_URL}api/interpret/create`,
         reqData, // Send reqData directly as JSON
         {
           headers: {

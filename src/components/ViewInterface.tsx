@@ -83,7 +83,7 @@ export const ViewInterface: React.FC = () => {
       setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<APIResponse>(`${BASE_URL}/api/study`);
+        const response = await axios.get<APIResponse>(`${BASE_URL}api/study`);
 
         // Update the state with the fetched studies
 

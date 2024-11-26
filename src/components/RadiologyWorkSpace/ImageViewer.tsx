@@ -77,15 +77,12 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         const authString = btoa(`${username}:${password}`);
 
         // Fetch the DICOM data
-        const response = await fetch(
-          `${BASE_URL}/api/image/${instance}`,
-          {
-            headers: {
-              Accept: 'application/dicom',
-              Authorization: `Basic ${authString}`,
-            },
-          }
-        );
+        const response = await fetch(`${BASE_URL}api/image/${instance}`, {
+          headers: {
+            Accept: 'application/dicom',
+            Authorization: `Basic ${authString}`,
+          },
+        });
 
         const arrayBuffer = await response.arrayBuffer();
 
