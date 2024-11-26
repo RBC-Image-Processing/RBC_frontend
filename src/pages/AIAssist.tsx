@@ -7,7 +7,6 @@ import {
   Typography,
   Stack,
   Button,
-  Rating,
   TextField,
   Chip,
   Alert,
@@ -32,13 +31,12 @@ import {
 import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
 import { Study } from '../types/index';
-import { useAuth } from '../contexts/AuthContext';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import ConfidenceProgressBar from '../components/ProgressBar';
 import { getToken } from '../api/token';
 import { decodeToken } from '../util/decodeToken';
 import { useUser } from '../contexts/UserContext';
-import { useFeedBack } from '../contexts/FeedbackContext';
+// import { useFeedBack } from '../contexts/FeedbackContext';
 import { useInterpretation } from '../contexts/InterpretationContext';
 import CustomRating from '../components/CustomRating';
 
@@ -75,12 +73,12 @@ interface RadiologistInterpretation {
   priority?: 'routine' | 'urgent' | 'stat';
 }
 
-interface DicomImage {
-  blob: Blob;
-  objectUrl: string;
-  arrayBuffer: ArrayBuffer;
-  cornerstoneImage?: any;
-}
+// interface DicomImage {
+//   blob: Blob;
+//   objectUrl: string;
+//   arrayBuffer: ArrayBuffer;
+//   cornerstoneImage?: any;
+// }
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -105,16 +103,16 @@ export const AIAssist: React.FC = () => {
   const { dicomImage } = useCornerstoneContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { loading, loggedInUser, getUser, getUserDetails } = useUser();
-  const {
-    feedback,
-    getFeedback,
-    postFeedback,
-    putFeedback,
-    deleteFeedback,
-    isLoading,
-    message,
-  } = useFeedBack();
+  const { loggedInUser, getUser, getUserDetails } = useUser();
+  // const {
+  //   feedback,
+  //   getFeedback,
+  //   postFeedback,
+  //   putFeedback,
+  //   deleteFeedback,
+  //   isLoading,
+  //   message,
+  // } = useFeedBack();
   const { getInterpretationByStudyId } = useInterpretation();
 
   //get user information with the userId
@@ -137,8 +135,8 @@ export const AIAssist: React.FC = () => {
   const [studyListOpen, setStudyListOpen] = useState(!isMobile);
   const [activeTab, setActiveTab] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
-  const [aiInterpretationId, setAiInterpretationId] = useState(null);
+  const [, setIsSubmissionComplete] = useState(false);
+  // const [aiInterpretationId, setAiInterpretationId] = useState(null);
   const [aiInterpretation, setAiInterpretation] =
     useState<AIInterpretation | null>(null);
   const [radiologistInterpretation, setRadiologistInterpretation] =
@@ -543,7 +541,7 @@ export const AIAssist: React.FC = () => {
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <ConfidenceProgressBar
-                        confidenceScore={aiInterpretation.confidence}
+                        confidenceScore={''+aiInterpretation.confidence}
                       />
                       {/* <Chip
                         label={`${(aiInterpretation.confidence * 100).toFixed(0)}% Confidence`}

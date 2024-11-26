@@ -8,6 +8,7 @@ interface DicomImage {
   blob: Blob;
   objectUrl: string;
   arrayBuffer: ArrayBuffer;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   image?: any;
 }
 

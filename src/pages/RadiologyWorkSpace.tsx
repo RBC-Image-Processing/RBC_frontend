@@ -48,7 +48,7 @@ export const RadiologyWorkspace: React.FC = () => {
 //   });
 
 
-  const { isLoading,isGetLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
+  const { isLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
 
 
 //get user information with the userId
