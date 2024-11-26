@@ -12,13 +12,6 @@ export interface User {
   role: UserRole;
 }
 
-export interface LoggedUser {
-  userId: string;
-  email: string;
-  fullName: string;
-  roleId: number;
-}
-
 export interface EditingUser {
   userId: string;
   isEmail: boolean;
@@ -27,6 +20,14 @@ export interface EditingUser {
 export interface Role {
   roleName: string;
   roleId: string;
+}
+
+export interface LoggedUser {
+  userId: string;
+  email: string;
+  fullName: string;
+  roleId: number;
+  Role: Role;
 }
 
 export interface UserList {
