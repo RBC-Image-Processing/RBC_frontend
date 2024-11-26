@@ -18,6 +18,8 @@ interface DICOMViewerProps {
   onClose: () => void;
 }
 
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
   const [currentInstanceIndex, setCurrentInstanceIndex] = useState<number>(-1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -105,7 +107,7 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
 
           // Make an API call to fetch the DICOM image buffer
           const response = await axios.get(
-            `http://localhost:8000/api/image/${instance}`,
+            `${BASE_URL}/api/image/${instance}`,
             {
               responseType: 'arraybuffer',
               headers: {

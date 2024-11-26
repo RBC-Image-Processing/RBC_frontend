@@ -24,6 +24,8 @@ interface DashboardItemProps {
   onClick: () => void;
 }
 
+
+
 const DashboardItem: React.FC<DashboardItemProps> = ({
   title,
   description,
@@ -90,7 +92,7 @@ const Dashboard: React.FC = () => {
 
   const role = loggedInUser && loggedInUser.Role.roleName;
 
-  console.log(loggedInUser, ' Our LoggedUser');
+
   const fullName = loggedInUser && loggedInUser.fullName;
 
   const navigate = useNavigate();

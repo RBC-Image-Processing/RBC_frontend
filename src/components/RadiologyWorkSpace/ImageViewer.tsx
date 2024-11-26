@@ -24,6 +24,8 @@ interface ImageViewerProps {
   onInstanceChange: (index: number) => void;
 }
 
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 export const ImageViewer: React.FC<ImageViewerProps> = ({
   study,
   currentInstance,
@@ -76,7 +78,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
         // Fetch the DICOM data
         const response = await fetch(
-          `http://localhost:8000/api/image/${instance}`,
+          `${BASE_URL}/api/image/${instance}`,
           {
             headers: {
               Accept: 'application/dicom',

@@ -87,6 +87,8 @@ interface TabPanelProps {
   value: number;
 }
 
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
   <Box
     role="tabpanel"
@@ -162,7 +164,7 @@ export const AIAssist: React.FC = () => {
       try {
         // Make the API call to fetch studies
         const response: AxiosResponse<StudyApiResponse> = await axios.get(
-          'http://localhost:8000/api/study'
+          `${BASE_URL}/api/study`
         );
 
         console.log(response, 'the response');
@@ -278,7 +280,7 @@ export const AIAssist: React.FC = () => {
       console.log(reqData, 'the req data');
 
       const response = await axios.post(
-        'http://localhost:8000/api/interpret/create',
+        `${BASE_URL}/api/interpret/create`,
         reqData, // Send reqData directly as JSON
         {
           headers: {
