@@ -82,13 +82,15 @@ const Dashboard: React.FC = () => {
     const fetchUser = async () => {
       //The fetching will be done when the loggedInUser is null
       const { userId } = decodeToken(token);
-      await getUser(''+ userId);
+      await getUser('' + userId);
     };
 
     fetchUser();
   }, [token]);
 
   const role = loggedInUser && loggedInUser.Role.roleName;
+
+  console.log(loggedInUser, ' Our LoggedUser');
   const fullName = loggedInUser && loggedInUser.fullName;
 
   const navigate = useNavigate();
