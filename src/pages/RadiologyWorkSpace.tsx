@@ -23,7 +23,8 @@ import { getToken } from '../api/token';
 import { decodeToken } from '../utils/decodeToken';
 import { useInterpretation } from '../contexts/InterpretationContext';
 import { AxiosResponse } from 'axios';
-// import { dummyStudies } from '../helper/dummyStuDIES';
+
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 export const RadiologyWorkspace: React.FC = () => {
   const theme = useTheme();
@@ -109,7 +110,7 @@ export const RadiologyWorkspace: React.FC = () => {
       try {
         // Make the API call to fetch studies
         const response: AxiosResponse<StudyApiResponse> = await axios.get(
-          'http://localhost:8000/api/study'
+          `${BASE_URL}/api/study`
         );
 
         console.log(response, 'the response');

@@ -33,6 +33,8 @@ interface UploadProgress {
   value: number;
 }
 
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 export const UploadInterface: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [metadata, setMetadata] = useState<UploadMetadata>({
@@ -116,7 +118,7 @@ export const UploadInterface: React.FC = () => {
       });
 
       const response = await axios.post(
-        'http://localhost:8000/api/study/upload',
+        `${BASE_URL}/api/study/upload`,
         formData,
         {
           headers: {

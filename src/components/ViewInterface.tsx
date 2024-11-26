@@ -21,6 +21,8 @@ interface APIResponse {
   };
 }
 
+const BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 export const ViewInterface: React.FC = () => {
   const [searchCriteria, setSearchCriteria] = useState<Record<string, string>>({
     patientId: '',
@@ -81,9 +83,7 @@ export const ViewInterface: React.FC = () => {
       setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<APIResponse>(
-          'http://localhost:8000/api/study'
-        );
+        const response = await axios.get<APIResponse>(`${BASE_URL}/api/study`);
 
         // Update the state with the fetched studies
 
