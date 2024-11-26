@@ -17,8 +17,7 @@ import {
   Share2,
   FileText,
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import {getToken} from "../api/token"
+import { getToken } from '../api/token';
 
 const HeroSection = styled(Box)(({ theme }) => ({
   background: 'url(/images/hero-background.jpg) center/cover no-repeat',
@@ -45,7 +44,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   // const { user } = useAuth();
 
-  const token = getToken("token");
+  const token = getToken('token');
 
   const handleGetStarted = () => {
     if (token) return navigate('/dashboard');

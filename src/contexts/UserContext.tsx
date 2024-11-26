@@ -9,6 +9,7 @@ import {
   SEND_ACTIVATION_EMAIL,
   UPDATE_USER,
 } from '../helper/Urls';
+import { UserDetails } from '../types/index';
 
 // Define error response type
 interface ApiError {
@@ -150,7 +151,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     return false;
   };
 
-  const getUserDetails = async (userId: string) => {
+  const getUserDetails = async (
+    userId: string
+  ): Promise<UserDetails | null> => {
     setLoading(true);
 
     try {
@@ -171,7 +174,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       toast.error(errorMessage);
       setMessage(errorMessage);
     }
-    return false;
+    return null;
   };
 
   const updateUser = async (userId: string, data: object): Promise<boolean> => {

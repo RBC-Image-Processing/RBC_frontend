@@ -22,7 +22,7 @@ import {
   FileText,
 } from 'lucide-react';
 
-import { Interpretation } from '../../types/radiologist';
+import { ApiInterpretationResponse as Interpretation } from '../../types/radiologist';
 import { useInterpretation } from '../../contexts/InterpretationContext';
 
 interface InterpretationFormProps {

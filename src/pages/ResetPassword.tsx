@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Button,
@@ -23,13 +22,12 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
- const { resetPassword , loading} = useAuth();
+  const { resetPassword } = useAuth();
   // Extract token from query parameters
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get('token');
 
-
-  const handleSubmit =  async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Passwords don't match");
@@ -37,12 +35,11 @@ const ResetPassword: React.FC = () => {
     }
     // Here you would typically call an API to reset the password
     try {
-      await  resetPassword(password,token)
+      await resetPassword(password, token);
     } catch (error) {
       console.error('Error resetting password:', error);
     }
     setIsSuccess(true);
-  
   };
 
   return (

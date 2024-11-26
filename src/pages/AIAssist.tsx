@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {
   Box,
   Grid,
@@ -30,15 +30,16 @@ import {
 } from 'lucide-react';
 import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
-import { Study } from '../types/index';
+import { Study, StudyApiResponse, UserDetails } from '../types/index';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import ConfidenceProgressBar from '../components/ProgressBar';
 import { getToken } from '../api/token';
-import { decodeToken } from '../util/decodeToken';
+import { decodeToken } from '../utils/decodeToken';
 import { useUser } from '../contexts/UserContext';
-// import { useFeedBack } from '../contexts/FeedbackContext';
+import { useFeedBack } from '../contexts/FeedbackContext';
 import { useInterpretation } from '../contexts/InterpretationContext';
 import CustomRating from '../components/CustomRating';
+import { ApiInterpretationResponse as Interpretation } from '../types/radiologist';
 
 type User = {
   userId: string;
@@ -66,7 +67,7 @@ interface RadiologistInterpretation {
   id: string;
   studyId: string;
   text: string;
-  radiologistId: string;
+  radiologistId: string | undefined;
   radiologistName: string;
   timestamp: string;
   status: 'pending' | 'completed';
@@ -104,15 +105,7 @@ export const AIAssist: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { loggedInUser, getUser, getUserDetails } = useUser();
-  // const {
-  //   feedback,
-  //   getFeedback,
-  //   postFeedback,
-  //   putFeedback,
-  //   deleteFeedback,
-  //   isLoading,
-  //   message,
-  // } = useFeedBack();
+  const { isLoading, postFeedback } = useFeedBack();
   const { getInterpretationByStudyId } = useInterpretation();
 
   //get user information with the userId
@@ -122,7 +115,7 @@ export const AIAssist: React.FC = () => {
       if (!loggedInUser) {
         const token = getToken('token');
         const { userId } = decodeToken(token);
-        await getUser(userId);
+        await getUser('' + userId);
       }
     };
 
@@ -168,7 +161,7 @@ export const AIAssist: React.FC = () => {
       // setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<any>(
+        const response: AxiosResponse<StudyApiResponse> = await axios.get(
           'http://localhost:8000/api/study'
         );
 
@@ -195,22 +188,24 @@ export const AIAssist: React.FC = () => {
   const fetchRadiologistInterpretation = async (studyId: string) => {
     setIsLoadingRadiologist(true);
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      const interpretation = await getInterpretationByStudyId(studyId);
-      const radiologist = await getUserDetails(interpretation[0]?.userId);
+      const interpretation: Interpretation[] =
+        await getInterpretationByStudyId(studyId);
+      const radiologist: UserDetails | null = await getUserDetails(
+        interpretation[0]?.userId ?? ''
+      );
 
-      const mockResponse: RadiologistInterpretation = {
+      const Response: RadiologistInterpretation = {
         id: `rad-${studyId}`,
         studyId,
         text: interpretation[0]?.diagnosis || 'No interpretation available.',
         radiologistId: interpretation[0]?.userId,
         radiologistName: radiologist?.fullName || 'Unknown Radiologist',
-        timestamp: interpretation[0]?.timestamp,
+        timestamp: interpretation[0]?.timestamp || '',
         status: 'completed',
         priority: 'routine',
       };
-      setRadiologistInterpretation(mockResponse);
+      setRadiologistInterpretation(Response);
     } catch (error) {
       console.error('Error fetching radiologist interpretation:', error);
       setRadiologistInterpretation(null);
@@ -541,7 +536,7 @@ export const AIAssist: React.FC = () => {
                   <Stack spacing={2}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <ConfidenceProgressBar
-                        confidenceScore={''+aiInterpretation.confidence}
+                        confidenceScore={'' + aiInterpretation.confidence}
                       />
                       {/* <Chip
                         label={`${(aiInterpretation.confidence * 100).toFixed(0)}% Confidence`}

@@ -15,8 +15,8 @@ import {
 } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
+import { getToken } from '../api/token';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -52,8 +52,7 @@ const ActivateAccount: React.FC = () => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const { login } = useAuth();
-    const {loading, activateAccount} = useUser();
+  const { activateAccount } = useUser();
   const navigate = useNavigate();
 
   // Extract token from query parameters
@@ -72,7 +71,8 @@ const ActivateAccount: React.FC = () => {
     }
     try {
       // Here you would typically make an API call to update the password
-      await activateAccount(password, token)
+      const token = getToken('token');
+      await activateAccount(password, token);
     } catch (error) {
       console.error('Error activating account:', error);
     }
@@ -80,11 +80,11 @@ const ActivateAccount: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleModalClose = async() => {
-
+  const handleModalClose = async () => {
     setIsModalOpen(false);
     //TODO  Simulate logging in with the new password
-     if (token)  {
+    const token = getToken('token');
+    if (token) {
       navigate('/dashboard');
     }
   };

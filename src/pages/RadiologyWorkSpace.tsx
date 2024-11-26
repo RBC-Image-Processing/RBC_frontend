@@ -13,15 +13,16 @@ import {
 import { ImageList } from '../components/RadiologyWorkSpace/ImageList';
 import { ImageViewer } from '../components/RadiologyWorkSpace/ImageViewer';
 import { InterpretationForm } from '../components/RadiologyWorkSpace/InterpretationForm';
-import { Study } from '../types/index';
-import { Interpretation } from '../types/radiologist';
+import { Study, StudyApiResponse } from '../types/index';
+import { ApiInterpretationResponse as Interpretation } from '../types/radiologist';
 import { useCornerstoneContext } from '../contexts/CornerstoneContext';
 import { Menu } from 'lucide-react';
-import axios from "axios"
+import axios from 'axios';
 import { useUser } from '../contexts/UserContext';
 import { getToken } from '../api/token';
-import { decodeToken } from '../util/decodeToken';
-import {useInterpretation } from '../contexts/InterpretationContext';
+import { decodeToken } from '../utils/decodeToken';
+import { useInterpretation } from '../contexts/InterpretationContext';
+import { AxiosResponse } from 'axios';
 // import { dummyStudies } from '../helper/dummyStuDIES';
 
 export const RadiologyWorkspace: React.FC = () => {
@@ -29,98 +30,97 @@ export const RadiologyWorkspace: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   useCornerstoneContext();
 
-  const [studies, setStudies] = useState([]);
+  const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [currentInstance, setCurrentInstance] = useState(0);
 
-  const [studyListOpen, setStudyListOpen] = useState(false)
-  const {loading, loggedInUser, getUser} = useUser();
-  console.log("Testing........",selectedStudy)
+  const [studyListOpen, setStudyListOpen] = useState(false);
+  const { loggedInUser, getUser } = useUser();
+  console.log('Testing........', selectedStudy);
 
+  // =======
+  //   const [studyListOpen, setStudyListOpen] = useState(false);
+  //   const [interpretation, setInterpretation] = useState<Interpretation>({
+  //     id: '8fb3d973-4449cad4-c21bb79d-81c41b56-b9412373',
+  //     text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
+  //     radiologistId: 'RD00023',
+  //     createdAt: new Date().toISOString(),
+  //   });
 
-// =======
-//   const [studyListOpen, setStudyListOpen] = useState(false);
-//   const [interpretation, setInterpretation] = useState<Interpretation>({
-//     id: '8fb3d973-4449cad4-c21bb79d-81c41b56-b9412373',
-//     text: 'There is an abnormal opacity in the right lower lung zone, suggestive of consolidation. This could be due to pneumonia, given the lobar distribution and clinical symptoms. No cavitations or nodules are seen',
-//     radiologistId: 'RD00023',
-//     createdAt: new Date().toISOString(),
-//   });
+  const {
+    isLoading,
+    retInterpretations,
+    updateInterpretation,
+    createInterpretation,
+    getInterpretationByStudyId,
+  } = useInterpretation();
 
-
-  const { isLoading,retInterpretations,updateInterpretation, createInterpretation,getInterpretationByStudyId} = useInterpretation();
-
-
-//get user information with the userId
-useEffect(() => {
-  const fetchUser = async () => {
-    //The fetching will be done when the loggedInUser is null
-    if (!loggedInUser) {
-      const token = getToken('token');
-      const { userId } = decodeToken(token);
-      await getUser(userId);
-    }
-  };
-
-  fetchUser();
-}, []);
-
-
-
-//dependency is if a study is selected 
-// make an api call to get an interpretation associated with the study 
-useEffect(() => {
-  console.log("called changed study", selectedStudy?.studyId);
-
-  const fetchInterpretation = async () => {
-    if (selectedStudy) {
-      
-      const interpretations: Interpretation[] = await getInterpretationByStudyId(selectedStudy.studyId);
-
-      if (loggedInUser != null && interpretations?.length > 0) {
-        setInterpretation({
-          interpretationId: interpretations[0]?.interpretationId,
-          diagnosis: interpretations[0]?.diagnosis,
-          radiologistId: `RD ${loggedInUser.userId}`,
-          roleId: loggedInUser.roleId.toString(),
-          createdAt: new Date().toISOString(),
-        });
-      } else {
-        setInterpretation({
-          interpretationId: "",
-          diagnosis: " ",
-          radiologistId: "",
-          roleId: "",
-          createdAt: "",
-        });
+  //get user information with the userId
+  useEffect(() => {
+    const fetchUser = async () => {
+      //The fetching will be done when the loggedInUser is null
+      if (!loggedInUser) {
+        const token = getToken('token');
+        const { userId } = decodeToken(token);
+        await getUser('' + userId);
       }
-    }
-  };
+    };
 
-  fetchInterpretation();
+    fetchUser();
+  }, []);
 
-}, [selectedStudy, loggedInUser,isLoading]);
+  //dependency is if a study is selected
+  // make an api call to get an interpretation associated with the study
+  useEffect(() => {
+    console.log('called changed study', selectedStudy?.studyId);
 
+    const fetchInterpretation = async () => {
+      if (selectedStudy) {
+        const interpretations: Interpretation[] =
+          await getInterpretationByStudyId(selectedStudy.studyId);
 
+        if (loggedInUser != null && interpretations?.length > 0) {
+          setInterpretation({
+            interpretationId: interpretations[0]?.interpretationId,
+            diagnosis: interpretations[0]?.diagnosis,
+            radiologistId: `RD ${loggedInUser.userId}`,
+            roleId: loggedInUser.roleId.toString(),
+            createdAt: new Date().toISOString(),
+          });
+        } else {
+          setInterpretation({
+            interpretationId: '',
+            diagnosis: ' ',
+            radiologistId: '',
+            roleId: '',
+            createdAt: '',
+          });
+        }
+      }
+    };
 
-   
+    fetchInterpretation();
+  }, [selectedStudy, loggedInUser, isLoading]);
+
   const [interpretation, setInterpretation] = useState<Interpretation>();
   useEffect(() => {
     const fetchStudies = async () => {
       // setIsLoading(true);ft_api_auth_intergration
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<any>('http://localhost:8000/api/study');
+        const response: AxiosResponse<StudyApiResponse> = await axios.get(
+          'http://localhost:8000/api/study'
+        );
 
-        console.log(response, "the response")
-        
+        console.log(response, 'the response');
+
         // Update the state with the fetched studies
 
-        const filteredValue = response.data.data.filter((item)=> {return item !== null});
+        const filteredValue = response.data.data.filter((item) => {
+          return item !== null;
+        });
 
         setStudies(filteredValue);
-      
-
       } catch (error) {
         console.error('Error fetching studies:', error);
       } finally {
@@ -131,7 +131,6 @@ useEffect(() => {
     fetchStudies();
   }, []);
 
-
   const handleStudySelect = async (study: Study) => {
     setSelectedStudy(study);
     if (isMobile) {
@@ -139,8 +138,6 @@ useEffect(() => {
     }
     setCurrentInstance(0);
   };
-
-   
 
   return (
     <Box
@@ -267,21 +264,36 @@ useEffect(() => {
           >
             <InterpretationForm
               interpretation={interpretation || null}
-              currentRadiologistId={loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'}
+              currentRadiologistId={
+                loggedInUser ? `RD${loggedInUser.userId}` : 'RD_DEFAULT'
+              }
               loggedUserRole={loggedInUser?.roleId?.toString() || '3'}
               loading={isLoading ?? false}
               onSubmit={(text) => {
-                console.log(selectedStudy?.studyId, loggedInUser?.userId, "info to be used")
-                if (retInterpretations&&interpretation &&retInterpretations[0].userId===loggedInUser?.userId) {
+                console.log(
+                  selectedStudy?.studyId,
+                  loggedInUser?.userId,
+                  'info to be used'
+                );
+                if (
+                  retInterpretations &&
+                  interpretation &&
+                  retInterpretations[0].userId === loggedInUser?.userId
+                ) {
                   if (retInterpretations[0]?.interpretationId) {
-                    updateInterpretation(retInterpretations[0]?.interpretationId, text);
+                    updateInterpretation(
+                      retInterpretations[0]?.interpretationId,
+                      text
+                    );
                   }
                 } else {
-                 createInterpretation(selectedStudy?.studyId, loggedInUser?.userId, text);
+                  createInterpretation(
+                    selectedStudy?.studyId,
+                    loggedInUser?.userId,
+                    text
+                  );
                 }
-
-              }
-              }
+              }}
             />
           </Grid>
         </Grid>
@@ -318,6 +330,3 @@ useEffect(() => {
 };
 
 export default RadiologyWorkspace;
-
-
-

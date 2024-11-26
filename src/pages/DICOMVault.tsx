@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
 import { Box, Tabs, Tab, useTheme, useMediaQuery } from '@mui/material';
 import { Eye, Upload } from 'lucide-react';
 import { DICOMVaultLayout } from '../components/DICOMVaultLayout';
