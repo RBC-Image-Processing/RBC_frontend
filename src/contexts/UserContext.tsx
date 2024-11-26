@@ -1,32 +1,59 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import {  LoggedUser, User, UserContextType , UserErr, UserList} from '../types/index';
+import { LoggedUser, UserContextType, UserErr, UserList } from '../types/index';
 import { AXIOS_GET, AXIOS_POST, AXIOS_PUT } from '../api/axios';
-import toast from "react-hot-toast";
-import { ACTIVATE_ACCOUNT, GET_USERS, REGISTER_USER, SEND_ACTIVATION_EMAIL, UPDATE_USER , } from '../helper/Urls';
+import toast from 'react-hot-toast';
+import {
+  ACTIVATE_ACCOUNT,
+  GET_USERS,
+  REGISTER_USER,
+  SEND_ACTIVATION_EMAIL,
+  UPDATE_USER,
+} from '../helper/Urls';
+import { UserDetails } from '../types/index';
 
+// Define error response type
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+      status?: number;
+    };
+  };
+  message?: string;
+}
+
+function isApiError(error: unknown): error is ApiError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof (error as ApiError).response === 'object'
+  );
+}
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-   const [users, setUsers] = useState<UserList[]>([]);
-   const [loggedInUser, setLoggedInUser] = useState<LoggedUser| null>(null);
+  const [users, setUsers] = useState<UserList[]>([]);
+  const [loggedInUser, setLoggedInUser] = useState<LoggedUser | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
-  const [errors, setErrors] = useState<UserErr>({
+  const [errors] = useState<UserErr>({
     fullName: '',
     email: '',
-    roleId:''
+    roleId: '',
   });
 
+  const registerUser = async (
+    fullName: string,
+    roleId: string,
+    email: string
+  ): Promise<boolean> => {
+    setLoading(true);
 
-
-  const registerUser =  async(fullName: string, roleId: string , email:string): Promise<boolean> => {
-
-      setLoading(true);
-
-       try {
+    try {
       const res = await AXIOS_POST(REGISTER_USER, {
         fullName,
         email,
@@ -34,7 +61,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         isActive: false,
         Verified: false,
       });
-
 
       const { message } = res.data;
 
@@ -49,7 +75,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       if (res.data.status === 200 || res.data.status === 201) {
-        toast.success(message);   
+        toast.success(message);
 
         if (res.data.data) {
           setLoading(false);
@@ -58,158 +84,194 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       setLoading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
       console.error(err);
-      toast.error(err.response?.data?.message );
-      setMessage(err.response?.data?.message );
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Registration failed'
+        : 'Registration failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
 
     return false;
   };
 
+  const getUsers = async (): Promise<boolean> => {
+    setLoading(true);
 
-const getUsers = async (): Promise<boolean> => {
-  setLoading(true);
+    try {
+      // Assume AXIOS_GET is properly typed or you can add its type like this:
+      const res = await AXIOS_GET(GET_USERS);
 
-  try {
-    // Assume AXIOS_GET is properly typed or you can add its type like this:
-    const res = await AXIOS_GET(GET_USERS);
+      if (res.data.status === 200) {
+        setUsers(res.data.data);
+        setLoading(false);
 
-
-    if (res.data.status === 200) {
-      setUsers(res.data.data);
+        // toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
+      console.error(err);
 
-      // toast.success(res.data.message);    
-      return true;
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Login failed'
+        : 'Login failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Login failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
-};
+    return false;
+  };
 
+  const getUser = async (userId: string): Promise<boolean> => {
+    setLoading(true);
 
-const getUser = async (userId:string): Promise<boolean> => {
-  setLoading(true);
+    try {
+      // Assume AXIOS_GET is properly typed or you can add its type like this:
+      const res = await AXIOS_GET(`${GET_USERS}${userId}`);
 
-  try {
-    // Assume AXIOS_GET is properly typed or you can add its type like this:
-    const res = await AXIOS_GET(`${GET_USERS}${userId}`);
-
-    if (res.data.status === 200) {
-      setLoggedInUser(res.data.data);
+      if (res.data.status === 200) {
+        setLoggedInUser(res.data.data);
+        setLoading(false);
+        // toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      // toast.success(res.data.message);   
-      return true;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Login failed'
+        : 'Login failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Login failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
-};
+    return false;
+  };
 
-const getUserDetails = async (userId:string) => {
-  setLoading(true);
+  const getUserDetails = async (
+    userId: string
+  ): Promise<UserDetails | null> => {
+    setLoading(true);
 
-  try {
-    // Assume AXIOS_GET is properly typed or you can add its type like this:
-    const res = await AXIOS_GET(`${GET_USERS}${userId}`);
+    try {
+      // Assume AXIOS_GET is properly typed or you can add its type like this:
+      const res = await AXIOS_GET(`${GET_USERS}${userId}`);
 
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        return res.data.data;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      return res.data.data;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Login failed'
+        : 'Login failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Login failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
-};
+    return null;
+  };
 
+  const updateUser = async (userId: string, data: object): Promise<boolean> => {
+    setLoading(true);
 
-const updateUser = async (userId: string, data: object): Promise<boolean> => {
-  setLoading(true);
+    try {
+      const res = await AXIOS_PUT(`${UPDATE_USER}${userId}`, data);
 
-  try {
-    const res = await AXIOS_PUT(`${UPDATE_USER}${userId}`, data);
-
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      toast.success(res.data.message);
-      return true;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Update failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
-}
+    return false;
+  };
 
-const sendActivateAccountRequest = async (email: string): Promise<boolean> => {
-  setLoading(true);
-  try {
-    const res = await AXIOS_POST(SEND_ACTIVATION_EMAIL, { email });
+  const sendActivateAccountRequest = async (
+    email: string
+  ): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const res = await AXIOS_POST(SEND_ACTIVATION_EMAIL, { email });
 
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      toast.success(res.data.message);
-      return true;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Update failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
 
-  return false;
+    return false;
+  };
 
-}
+  const activateAccount = async (
+    newPassword: string,
+    token: string | null
+  ): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const res = await AXIOS_POST(`${ACTIVATE_ACCOUNT}/?token=${token}`, {
+        newPassword,
+      });
 
-
-const activateAccount = async (newPassword: string, token: string | null): Promise<boolean> => {
-  setLoading(true);
-  try {
-    const res = await AXIOS_POST(`${ACTIVATE_ACCOUNT}/?token=${token}`, { newPassword });
-
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      toast.success(res.data.message);
-      return true;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Update failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
-
-}
-
-
-
+    return false;
+  };
 
   return (
-    <UserContext.Provider value={{  users, loggedInUser, getUser, registerUser , updateUser,  sendActivateAccountRequest, activateAccount, loading, message,errors, getUsers,getUserDetails}}>
+    <UserContext.Provider
+      value={{
+        users,
+        loggedInUser,
+        getUser,
+        registerUser,
+        updateUser,
+        sendActivateAccountRequest,
+        activateAccount,
+        loading,
+        message,
+        errors,
+        getUsers,
+        getUserDetails,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

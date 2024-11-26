@@ -1,6 +1,7 @@
 declare module 'dicom.ts' {
   export interface Image {
     patientID: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getTagValue(tag: [number, number]): any;
   }
 

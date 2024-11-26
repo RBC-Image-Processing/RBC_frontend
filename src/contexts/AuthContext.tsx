@@ -2,8 +2,32 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { User, AuthContextType, Err } from '../types/index';
 import { deleteToken, setToken } from '../api/token';
 import { AXIOS_POST } from '../api/axios';
-import toast from "react-hot-toast";
-import { POST_LOGIN, RESET_PASSWORD, SEND_RESET_PASSWORD_EMAIL } from '../helper/Urls';
+import toast from 'react-hot-toast';
+import {
+  POST_LOGIN,
+  RESET_PASSWORD,
+  SEND_RESET_PASSWORD_EMAIL,
+} from '../helper/Urls';
+
+// Define error response type
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+      status?: number;
+    };
+  };
+  message?: string;
+}
+
+function isApiError(error: unknown): error is ApiError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof (error as ApiError).response === 'object'
+  );
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -18,10 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     password: '',
   });
 
-
-
-
- const validate = (email:string, password:string) => {
+  const validate = (email: string, password: string) => {
     const newErrors = { email: '', password: '' };
     if (!email) {
       newErrors.email = 'Email is required';
@@ -37,16 +58,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return !newErrors.email && !newErrors.password;
   };
 
+  const login = async (email: string, password: string): Promise<boolean> => {
+    console.log(email, password, 'the mail and pass');
 
-  const login =  async(email: string, password: string): Promise<boolean> => {
-    console.log(email, password, "the mail and pass");
+    if (!validate(email, password)) {
+      return false;
+    }
+    setLoading(true);
 
-      if(!validate(email,password)){
-        return false;
-      }
-      setLoading(true);
-
-       try {
+    try {
       const res = await AXIOS_POST(POST_LOGIN, {
         email,
         password,
@@ -66,84 +86,105 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       if (res.data.status === 200) {
         if (res.data.data.token) {
-          const { token, roleName} = res.data.data;
+          const { token, roleName } = res.data.data;
           setToken('token', token);
           setLoading(false);
           toast.success(message);
 
-          setUser( {
-              token,
-              email,
-              role: roleName
-            });
+          setUser({
+            token,
+            email,
+            role: roleName,
+          });
 
-   
           return true;
         }
       }
 
       setLoading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
       console.error(err);
-      toast.error(err.response?.data?.message || 'Login failed');
-      setMessage(err.response?.data?.message || 'Login failed');
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Login failed'
+        : 'Login failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
 
     return false;
   };
 
-
   const sendResetPasswordRequest = async (email: string): Promise<boolean> => {
-  setLoading(true);
-  try {
-    const res = await AXIOS_POST(SEND_RESET_PASSWORD_EMAIL, { email });
+    setLoading(true);
+    try {
+      const res = await AXIOS_POST(SEND_RESET_PASSWORD_EMAIL, { email });
 
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      toast.success(res.data.message);
-      return true;
+      console.error(err);
+
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
     }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Update failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
 
-  return false;
+    return false;
+  };
 
-}
+  const resetPassword = async (
+    newPassword: string,
+    token: string | null
+  ): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const res = await AXIOS_POST(`${RESET_PASSWORD}/?token=${token}`, {
+        newPassword,
+      });
 
-
-const resetPassword = async (newPassword: string, token:string): Promise<boolean> => {
-  setLoading(true);
-  try {
-    const res = await AXIOS_POST(`${RESET_PASSWORD}/?token=${token}`, { newPassword });
-
-    if (res.data.status === 200) {
+      if (res.data.status === 200) {
+        setLoading(false);
+        toast.success(res.data.message);
+        return true;
+      }
+    } catch (err: unknown) {
       setLoading(false);
-      toast.success(res.data.message);
-      return true;
-    }
-  } catch (err: any) {
-    setLoading(false);
-    console.error(err);
-    const errorMessage = err.response?.data?.message || 'Update failed';
-    toast.error(errorMessage);
-    setMessage(errorMessage);
-  }
-  return false;
+      console.error(err);
 
-}
-  const logout = ()=> {
-    console.log("called")
-    deleteToken('token')
+      const errorMessage = isApiError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(errorMessage);
+      setMessage(errorMessage);
+    }
+    return false;
+  };
+  const logout = () => {
+    console.log('called');
+    deleteToken('token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout , loading, sendResetPasswordRequest, resetPassword, message,errors}}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        sendResetPasswordRequest,
+        resetPassword,
+        message,
+        errors,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

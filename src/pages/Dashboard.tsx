@@ -10,18 +10,12 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import HashLoader from "react-spinners/HashLoader";
-import {
-  Users,
-  Film,
-  Stethoscope,
-  Brain,
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import {getToken} from "../api/token"
-import { decodeToken } from '../util/decodeToken';
+import HashLoader from 'react-spinners/HashLoader';
+import { Users, Film, Stethoscope, Brain } from 'lucide-react';
+import { getToken } from '../api/token';
+import { decodeToken } from '../utils/decodeToken';
 import { useUser } from '../contexts/UserContext';
-import { JwtPayload } from 'jwt-decode';
+
 interface DashboardItemProps {
   title: string;
   description: string;
@@ -78,31 +72,24 @@ const DashboardItem: React.FC<DashboardItemProps> = ({
 };
 
 const Dashboard: React.FC = () => {
-  const {loading, loggedInUser, getUser} = useUser();
+  const { loading, loggedInUser, getUser } = useUser();
   const token = getToken('token');
 
-//retrieving user information and serving it to the dashboard
+  //retrieving user information and serving it to the dashboard
 
-
-//get user information with the userId
-useEffect(() => {
-  const fetchUser = async () => {
-    //The fetching will be done when the loggedInUser is null
+  //get user information with the userId
+  useEffect(() => {
+    const fetchUser = async () => {
+      //The fetching will be done when the loggedInUser is null
       const { userId } = decodeToken(token);
-      await getUser(userId);
-    
-  };
+      await getUser(''+ userId);
+    };
 
-  fetchUser();
-}, [token]);
+    fetchUser();
+  }, [token]);
 
-
-
-
-const role = loggedInUser&&loggedInUser.Role.roleName
-const fullName =  loggedInUser&&loggedInUser.fullName;
-
-
+  const role = loggedInUser && loggedInUser.Role.roleName;
+  const fullName = loggedInUser && loggedInUser.fullName;
 
   const navigate = useNavigate();
 
@@ -149,42 +136,51 @@ const fullName =  loggedInUser&&loggedInUser.fullName;
 
   return (
     <Box sx={{ bgcolor: 'background.default', py: 4 }}>
-     {loading ?    <Box
-  sx={{
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '50vh', // Full viewport height for vertical centering
-    bgcolor: 'background.default',
-  }}
->
-  <HashLoader
-    color={"#005A9C"} // Use MUI theme color
-    loading={loading}
-    size={50}
-    speedMultiplier={1}
-  />
-</Box> : <Container maxWidth="lg">
-        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
-          Welcome, {fullName}
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom color="text.secondary">
-          {role} Dashboard
-        </Typography>
-        <Grid container spacing={3} mt={2}>
-          {filteredItems.map((item, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <DashboardItem
-                title={item.title}
-                description={item.description}
-                icon={item.icon}
-                color={item.color}
-                onClick={item.onClick}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Container>}
+      {loading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '50vh', // Full viewport height for vertical centering
+            bgcolor: 'background.default',
+          }}
+        >
+          <HashLoader
+            color={'#005A9C'} // Use MUI theme color
+            loading={loading}
+            size={50}
+            speedMultiplier={1}
+          />
+        </Box>
+      ) : (
+        <Container maxWidth="lg">
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
+            fontWeight="bold"
+          >
+            Welcome, {fullName}
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom color="text.secondary">
+            {role} Dashboard
+          </Typography>
+          <Grid container spacing={3} mt={2}>
+            {filteredItems.map((item, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <DashboardItem
+                  title={item.title}
+                  description={item.description}
+                  icon={item.icon}
+                  color={item.color}
+                  onClick={item.onClick}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      )}
     </Box>
   );
 };

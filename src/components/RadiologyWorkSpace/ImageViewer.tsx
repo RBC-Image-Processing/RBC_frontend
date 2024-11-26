@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cornerstone from 'cornerstone-core';
-import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
-import dicomParser from 'dicom-parser';
 import {
   Paper,
   Box,
@@ -19,7 +17,6 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { Study } from '../../types/index';
-import axios from 'axios';
 import { useCornerstoneContext } from '../../contexts/CornerstoneContext';
 interface ImageViewerProps {
   study: Study;
@@ -36,8 +33,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(true);
-    const {  setDicomImage } = useCornerstoneContext();
-
+  const { setDicomImage } = useCornerstoneContext();
 
   // Initialize cornerstone element
   useEffect(() => {
@@ -69,13 +65,13 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
       try {
         const instance = study.instances[currentInstance];
-        
+
         if (!instance) {
-          throw new Error("Instance is undefined or invalid");
+          throw new Error('Instance is undefined or invalid');
         }
 
-        const username = "bright";
-        const password = "bright";
+        const username = 'bright';
+        const password = 'bright';
         const authString = btoa(`${username}:${password}`);
 
         // Fetch the DICOM data
@@ -83,40 +79,39 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
           `http://localhost:8000/api/image/${instance}`,
           {
             headers: {
-              Accept: "application/dicom",
+              Accept: 'application/dicom',
               Authorization: `Basic ${authString}`,
             },
           }
         );
 
         const arrayBuffer = await response.arrayBuffer();
-        
+
         // Convert ArrayBuffer to Blob
         const blob = new Blob([arrayBuffer], { type: 'application/dicom' });
-        
+
         // Create object URL from blob
         const objectUrl = URL.createObjectURL(blob);
-        
+
         // Use wadouri scheme with the object URL
         const imageId = `wadouri:${objectUrl}`;
-        
+
         console.log('Loading image with ID:', imageId);
-        
+
         // Load and display the image
         const image = await cornerstone.loadImage(imageId);
 
-           setDicomImage({
-        blob,
-        objectUrl,
-        arrayBuffer,
-        image,
-      });
+        setDicomImage({
+          blob,
+          objectUrl,
+          arrayBuffer,
+          image,
+        });
 
         await cornerstone.displayImage(viewerRef.current, image);
-        
+
         // Clean up the object URL
         URL.revokeObjectURL(objectUrl);
-
       } catch (error) {
         console.error('Error loading image:', error);
         setError('Failed to load image');

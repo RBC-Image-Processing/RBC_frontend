@@ -22,11 +22,22 @@
 
 //rad
 
+export interface ApiInterpretationResponse {
+  interpretationId: string | undefined;
+  studyId?: string;
+  userId?: string;
+  diagnosis: string;
+  timestamp?: string;
+  roleId?: string;
+  createdAt?: string;
+  radiologistId?: string;
+}
+
 export interface Interpretation {
   interpretationId: string | undefined;
   diagnosis: string;
   radiologistId: string;
-  roleId:string;
+  roleId: string;
   createdAt: string;
 }
 

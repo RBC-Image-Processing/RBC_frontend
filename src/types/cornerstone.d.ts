@@ -1,4 +1,4 @@
-// File: src/types/cornerstone.d.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'cornerstone-core' {
   export interface Image {
     imageId: string;

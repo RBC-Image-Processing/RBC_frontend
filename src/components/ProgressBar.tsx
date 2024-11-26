@@ -1,9 +1,15 @@
 import React from 'react';
 import { Box, Typography, LinearProgress } from '@mui/material';
 
-function ConfidenceProgressBar({ confidenceScore }) {
+interface ConfidenceProgressBarProps {
+  confidenceScore: string;
+}
+
+function ConfidenceProgressBar({
+  confidenceScore,
+}: ConfidenceProgressBarProps) {
   return (
-   <Box
+    <Box
       sx={{
         backgroundColor: '#f0f0f0', // Gray background
         padding: 2, // Padding inside the box
@@ -24,13 +30,13 @@ function ConfidenceProgressBar({ confidenceScore }) {
 
       {/* Heading showing the Confidence Score */}
       <Typography variant="body1" gutterBottom>
-        {`${(confidenceScore * 100).toFixed(0)}% Confident`}
+        {`${(parseInt(confidenceScore) * 100).toFixed(0)}% Confident`}
       </Typography>
 
       {/* Progress Bar */}
       <LinearProgress
         variant="determinate"
-        value={confidenceScore * 100}
+        value={parseInt(confidenceScore) * 100}
         sx={{ height: 10, borderRadius: 5 }}
       />
     </Box>

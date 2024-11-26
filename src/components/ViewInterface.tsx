@@ -12,13 +12,22 @@ import { DICOMTable } from './DICOMTable';
 import { DICOMViewer } from './DICOMViewer';
 import axios from 'axios';
 
+interface APIResponse {
+  status: string;
+  message: string;
+  data: Study[];
+  link: {
+    self: string;
+  };
+}
+
 export const ViewInterface: React.FC = () => {
   const [searchCriteria, setSearchCriteria] = useState<Record<string, string>>({
     patientId: '',
     dateRange: '',
   });
-  const [allStudies, setAllStudies] = useState<any[]>([]);
-  const [filteredStudies, setFilteredStudies] = useState<any[]>([]);
+  const [allStudies, setAllStudies] = useState<Study[]>([]);
+  const [filteredStudies, setFilteredStudies] = useState<Study[]>([]);
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -72,13 +81,17 @@ export const ViewInterface: React.FC = () => {
       setIsLoading(true);
       try {
         // Make the API call to fetch studies
-        const response = await axios.get<any>('http://localhost:8000/api/study');
+        const response = await axios.get<APIResponse>(
+          'http://localhost:8000/api/study'
+        );
 
         // Update the state with the fetched studies
 
-        const filteredValue = response.data.data.filter((item)=> {return item !== null});
+        const filteredValue = response.data.data.filter((item) => {
+          return item !== null;
+        });
 
-        console.log(filteredValue, "the filtered value");
+        console.log(filteredValue, 'the filtered value');
         setAllStudies(filteredValue);
         setFilteredStudies(filteredValue);
       } catch (error) {

@@ -1,22 +1,24 @@
-import React, { createContext, useState, useContext, ReactNode } from "react";
-import { AXIOS_DELETE, AXIOS_GET, AXIOS_POST, AXIOS_PUT } from "../api/axios";
-import { INTEPRETATION } from "../helper/Urls";
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { AXIOS_DELETE, AXIOS_GET, AXIOS_POST, AXIOS_PUT } from '../api/axios';
+import { INTEPRETATION } from '../helper/Urls';
+import { ApiInterpretationResponse as Interpretation } from '../types/radiologist';
 
 // Define types for interpretation and context state
-interface Interpretation {
-  interpretationId: string | undefined;
-  studyId: string;
-  userId: string;
-  diagnosis: string;
-}
+
 
 interface InterpretationContextType {
   retInterpretations: Interpretation[];
   isLoading: boolean;
- isGetLoading:boolean;
+  isGetLoading: boolean;
   error: string | null;
-  createInterpretation: (studyId: string | undefined, userId: string | undefined, diagnosis: string) => void;
-  getInterpretationByStudyId: (studyId: string | undefined) => void;
+  createInterpretation: (
+    studyId: string | undefined,
+    userId: string | undefined,
+    diagnosis: string
+  ) => void;
+  getInterpretationByStudyId: (
+    studyId: string | undefined
+  ) => Promise<Interpretation[]>;
   updateInterpretation: (interpretationId: string, diagnosis: string) => void;
   deleteInterpretation: (interpretationId: string) => void;
 }
@@ -25,42 +27,48 @@ interface InterpretationContextType {
 const defaultContextValue: InterpretationContextType = {
   retInterpretations: [],
   isLoading: false,
- isGetLoading: false,
+  isGetLoading: false,
   error: null,
   createInterpretation: () => {},
-  getInterpretationByStudyId: () => {},
+  getInterpretationByStudyId: () => Promise.resolve([]),
   updateInterpretation: () => {},
   deleteInterpretation: () => {},
 };
-//ss
+
 // Create context
-const InterpretationContext = createContext<InterpretationContextType>(defaultContextValue);
+const InterpretationContext =
+  createContext<InterpretationContextType>(defaultContextValue);
 
 // Create the provider component
-export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [retInterpretations, setRetInterpretations] = useState<Interpretation[]>([]);
+export const InterpretationProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [retInterpretations, setRetInterpretations] = useState<
+    Interpretation[]
+  >([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isGetLoading, setIsGetLoading] = useState<boolean>(false);
+  const [isGetLoading, setIsGetLoading] = useState<boolean>(false);
 
-      
   const [error, setError] = useState<string | null>(null);
 
   // Fetch interpretations by study ID
-const getInterpretationByStudyId = async (studyId: string | undefined): Promise<Interpretation[]> => {
-  if (!studyId) {
-    setError("Study ID is undefined");
-    return [];
-  }
+  const getInterpretationByStudyId = async (
+    studyId: string | undefined
+  ): Promise<Interpretation[]> => {
+    if (!studyId) {
+      setError('Study ID is undefined');
+      return [];
+    }
 
     setIsGetLoading(true);
     try {
       const response = await AXIOS_GET(`/api/interpretation/study/${studyId}`);
       setRetInterpretations(response.data.data); // Assuming your response has a data field with interpretations
-     console.log("Retrieved interpretations", response.data.data);
+      console.log('Retrieved interpretations', response.data.data);
       setError(null);
       return response.data.data;
     } catch (err) {
-      setError("Error fetching interpretations");
+      setError('Error fetching interpretations');
       console.error(err);
     } finally {
       setIsGetLoading(false);
@@ -69,7 +77,11 @@ const getInterpretationByStudyId = async (studyId: string | undefined): Promise<
   };
 
   // Create a new interpretation
-  const createInterpretation = async (studyId: string | undefined, userId: string | undefined, diagnosis: string | undefined) => {
+  const createInterpretation = async (
+    studyId: string | undefined,
+    userId: string | undefined,
+    diagnosis: string | undefined
+  ) => {
     setIsLoading(true);
     try {
       const response = await AXIOS_POST(INTEPRETATION, {
@@ -78,10 +90,14 @@ const getInterpretationByStudyId = async (studyId: string | undefined): Promise<
         diagnosis: diagnosis,
       });
       console.log(response.data.data);
-  setRetInterpretations((prev) => Array.isArray(prev) ? [...prev, response.data.data] : [response.data.data]);
-  setError(null);
+      setRetInterpretations((prev) =>
+        Array.isArray(prev)
+          ? [...prev, response.data.data]
+          : [response.data.data]
+      );
+      setError(null);
     } catch (err) {
-      setError("Error creating interpretation");
+      setError('Error creating interpretation');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -89,52 +105,61 @@ const getInterpretationByStudyId = async (studyId: string | undefined): Promise<
   };
 
   // Update an interpretation
- const updateInterpretation = async (interpretationId: string, diagnosis: string) => {
-  setIsLoading(true);
-  try {
-    console.log(interpretationId, diagnosis, "the data sent");
-    const response = await AXIOS_PUT(`/api/interpretation/${interpretationId}`, {
-      diagnosis: diagnosis,
-    });
-    console.log(response);
-    // Check if `prev` is an array before mapping
-    setRetInterpretations((prev) =>
-      Array.isArray(prev)
-        ? prev.map((interpretation) =>
-            interpretation.interpretationId === interpretationId
-              ? { ...interpretation, diagnosis: response.data.data.diagnosis }
-              : interpretation
-          )
-        : []
-    );
-    setError(null);
-  } catch (err) {
-    setError("Error updating interpretation");
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const updateInterpretation = async (
+    interpretationId: string,
+    diagnosis: string
+  ) => {
+    setIsLoading(true);
+    try {
+      console.log(interpretationId, diagnosis, 'the data sent');
+      const response = await AXIOS_PUT(
+        `/api/interpretation/${interpretationId}`,
+        {
+          diagnosis: diagnosis,
+        }
+      );
+      console.log(response);
+      // Check if `prev` is an array before mapping
+      setRetInterpretations((prev) =>
+        Array.isArray(prev)
+          ? prev.map((interpretation) =>
+              interpretation.interpretationId === interpretationId
+                ? { ...interpretation, diagnosis: response.data.data.diagnosis }
+                : interpretation
+            )
+          : []
+      );
+      setError(null);
+    } catch (err) {
+      setError('Error updating interpretation');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
- // Delete an interpretation
-const deleteInterpretation = async (interpretationId: string) => {
-  setIsLoading(true);
-  try {
-    await AXIOS_DELETE(`/api/interpretation/${interpretationId}`);
-    // Check if `prev` is an array before filtering
-    setRetInterpretations((prev) =>
-      Array.isArray(prev)
-        ? prev.filter((interpretation) => interpretation.interpretationId !== interpretationId)
-        : []
-    );
-    setError(null);
-  } catch (err) {
-    setError("Error deleting interpretation");
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  // Delete an interpretation
+  const deleteInterpretation = async (interpretationId: string) => {
+    setIsLoading(true);
+    try {
+      await AXIOS_DELETE(`/api/interpretation/${interpretationId}`);
+      // Check if `prev` is an array before filtering
+      setRetInterpretations((prev) =>
+        Array.isArray(prev)
+          ? prev.filter(
+              (interpretation) =>
+                interpretation.interpretationId !== interpretationId
+            )
+          : []
+      );
+      setError(null);
+    } catch (err) {
+      setError('Error deleting interpretation');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <InterpretationContext.Provider
@@ -158,7 +183,9 @@ const deleteInterpretation = async (interpretationId: string) => {
 export const useInterpretation = () => {
   const context = useContext(InterpretationContext);
   if (!context) {
-    throw new Error("useInterpretation must be used within a InterpretationProvider");
+    throw new Error(
+      'useInterpretation must be used within a InterpretationProvider'
+    );
   }
   return context;
 };

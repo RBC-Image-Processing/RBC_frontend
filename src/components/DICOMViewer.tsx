@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from "axios";
+import axios from 'axios';
 import {
   Typography,
   Button,
@@ -21,6 +21,7 @@ interface DICOMViewerProps {
 export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
   const [currentInstanceIndex, setCurrentInstanceIndex] = useState<number>(-1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rendererRef = useRef<any>(null);
 
   const theme = useTheme();
@@ -77,81 +78,75 @@ export const DICOMViewer: React.FC<DICOMViewerProps> = ({ study, onClose }) => {
 
   //   loadAndRenderImage();
   // }, [study, currentInstanceIndex]);
-useEffect(() => {
-  const loadAndRenderImage = async () => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
+  useEffect(() => {
+    const loadAndRenderImage = async () => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
 
         // Set canvas size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-try {
-  // Get the current instance object
-  const instance = study.instances[currentInstanceIndex];
+        try {
+          // Get the current instance object
+          const instance = study.instances[currentInstanceIndex];
 
-  console.log("Current instance:", instance); // Log instance
+          console.log('Current instance:', instance); // Log instance
 
-  if (!instance) {
-    throw new Error("Instance is undefined or invalid");
-  }
-
-  const username = "bright";
-  const password = "bright";
-  const authString = btoa(`${username}:${password}`); // Base64 encode
-
-  console.log("Auth String:", authString); // Log the auth string
-
-  // Make an API call to fetch the DICOM image buffer
-  const response = await axios.get(
-    `http://localhost:8000/api/image/${instance}`,
-    {
-      responseType: "arraybuffer",
-      headers: {
-        Accept: "application/dicom",
-        Authorization: `Basic ${authString}`,
-      },
-    }
-  );
-
-
-
-
-
-  const arrayBuffer = response.data;
-
-  // Parse the DICOM image using dicom.ts
-        const image = dicomts.parseImage(arrayBuffer);
-
-        if (image) {
-          // Log some DICOM tags (optional)
-          console.log("PatientID:", image.patientID);
-          const patientName = image.getTagValue([0x0010, 0x0010]);
-          console.log(
-            "PatientName:",
-            patientName ? patientName.toString() : "N/A"
-          );
-
-          // Create or reuse the renderer
-          if (!rendererRef.current) {
-            rendererRef.current = new dicomts.Renderer(canvas);
+          if (!instance) {
+            throw new Error('Instance is undefined or invalid');
           }
 
-          // Render the parsed DICOM image onto the canvas
-          await rendererRef.current.render(image, 0);
-        } else {
-          throw new Error("Failed to parse DICOM image");
+          const username = 'bright';
+          const password = 'bright';
+          const authString = btoa(`${username}:${password}`); // Base64 encode
+
+          console.log('Auth String:', authString); // Log the auth string
+
+          // Make an API call to fetch the DICOM image buffer
+          const response = await axios.get(
+            `http://localhost:8000/api/image/${instance}`,
+            {
+              responseType: 'arraybuffer',
+              headers: {
+                Accept: 'application/dicom',
+                Authorization: `Basic ${authString}`,
+              },
+            }
+          );
+
+          const arrayBuffer = response.data;
+
+          // Parse the DICOM image using dicom.ts
+          const image = dicomts.parseImage(arrayBuffer);
+
+          if (image) {
+            // Log some DICOM tags (optional)
+            console.log('PatientID:', image.patientID);
+            const patientName = image.getTagValue([0x0010, 0x0010]);
+            console.log(
+              'PatientName:',
+              patientName ? patientName.toString() : 'N/A'
+            );
+
+            // Create or reuse the renderer
+            if (!rendererRef.current) {
+              rendererRef.current = new dicomts.Renderer(canvas);
+            }
+
+            // Render the parsed DICOM image onto the canvas
+            await rendererRef.current.render(image, 0);
+          } else {
+            throw new Error('Failed to parse DICOM image');
+          }
+        } catch (error) {
+          console.error('Error loading DICOM image:', error);
         }
-} catch (error) {
-  console.error("Error loading DICOM image:", error);
-}
+      }
+    };
 
-    }
-  };
-
-  loadAndRenderImage();
-}, [currentInstanceIndex, study.instances]); // Dependencies to re-run the effect
-
+    loadAndRenderImage();
+  }, [currentInstanceIndex, study.instances]); // Dependencies to re-run the effect
 
   const handlePrevious = () => {
     setCurrentInstanceIndex((prev) => (prev > 0 ? prev - 1 : prev));
