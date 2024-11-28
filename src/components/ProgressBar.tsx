@@ -30,13 +30,13 @@ function ConfidenceProgressBar({
 
       {/* Heading showing the Confidence Score */}
       <Typography variant="body1" gutterBottom>
-        {`${(parseInt(confidenceScore) * 100).toFixed(0)}% Confident`}
+        {`${(parseFloat(confidenceScore) * 100).toFixed(0)}% Confident`}
       </Typography>
 
       {/* Progress Bar */}
       <LinearProgress
         variant="determinate"
-        value={parseInt(confidenceScore) * 100}
+        value={parseFloat(confidenceScore) * 100}
         sx={{ height: 10, borderRadius: 5 }}
       />
     </Box>
