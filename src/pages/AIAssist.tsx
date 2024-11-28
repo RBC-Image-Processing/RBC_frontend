@@ -247,7 +247,7 @@ export const AIAssist: React.FC = () => {
       );
 
       // Extract AI interpretation from the response
-      const { interpretation, confidence, timestamp } = response.data;
+      const { interpretation, confidence, timestamp } = response.data.data;
 
       console.log(interpretation, 'the ai response');
       // Construct the AIInterpretation object
@@ -256,6 +256,7 @@ export const AIAssist: React.FC = () => {
         studyId: selectedStudy.studyId,
         interpretation: interpretation || 'No interpretation available.',
         confidence: confidence || 0,
+        // confidence:  parseInt(`${(confidence)}%`),
         timestamp: timestamp || new Date().toISOString(),
         comments: [],
       };
