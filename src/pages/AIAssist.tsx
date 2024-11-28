@@ -236,7 +236,8 @@ export const AIAssist: React.FC = () => {
 
       // Make the API call
       const response = await axios.post(
-        `${ML_BASE_URL}/predict_with_interpretation`,
+        // `${ML_BASE_URL}/predict_with_interpretation`,
+        `${BASE_URL}/api/interpret`,
         formData,
         {
           headers: {
