@@ -142,6 +142,8 @@ export const AIAssist: React.FC = () => {
 
   const canRate = loggedInUser?.roleId === 2;
 
+  const ML_BASE_URL = import.meta.env.VITE_ML_BACKEND_URL;
+
   console.log(aiInterpretation, 'the intttt');
   // Reset states when study changes
   useEffect(() => {
@@ -234,7 +236,7 @@ export const AIAssist: React.FC = () => {
 
       // Make the API call
       const response = await axios.post(
-        'http://172.29.98.121:8000/predict_with_interpretation',
+        `${ML_BASE_URL}predict_with_interpretation`,
         formData,
         {
           headers: {
