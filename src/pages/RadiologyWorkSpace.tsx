@@ -110,10 +110,9 @@ export const RadiologyWorkspace: React.FC = () => {
       try {
         // Make the API call to fetch studies
         const response: AxiosResponse<StudyApiResponse> = await axios.get(
-          `${BASE_URL}api/study`
+          `${BASE_URL}/api/study`
         );
 
-        console.log(response, 'the response');
 
         // Update the state with the fetched studies
 
